@@ -21,16 +21,8 @@ ExecStartPre=-runagent discover-smarthost
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/semaphoreui-app.pid \
     --cidfile %t/semaphoreui-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/semaphoreui.pod-id --replace -d --name  semaphoreui-app \
-    --volume semaphoreui-app:/var/www/html/:Z \
-    --volume ./tmp:/tmp:Z \
-    --env=MARIADB_* \
-    --env MARIADB_DB_TYPE=mysql \
-    --env MARIADB_DB_HOST=127.0.0.1 \
-    --env MARIADB_DB_PORT=3306 \
-    --env MARIADB_DB_USER=semaphoreui \
-    --env MARIADB_DB_PASSWORD=semaphoreui \
-    --env MARIADB_DB_NAME=semaphoreui \
-    ${NGINX_IMAGE}
+    --env-file=%S/state/app.env \
+    ${SEMAPHORE_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/semaphoreui-app.ctr-id -t 10
 ExecReload=/usr/bin/podman kill -s HUP semaphoreui-app
 SyslogIdentifier=%u

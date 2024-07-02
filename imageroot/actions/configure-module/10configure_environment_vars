@@ -8,6 +8,7 @@
 import json
 import sys
 import agent
+import secrets
 
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
@@ -32,24 +33,12 @@ maria_db = {
 }
 agent.write_envfile("database.env", maria_db)
 
-# SEMAPHORE_DB_USER: semaphore
-# SEMAPHORE_DB_PASS: semaphore
-# SEMAPHORE_DB_HOST: mysql # for postgres, change to: postgres
-# SEMAPHORE_DB_PORT: 3306 # change to 5432 for postgres
-# SEMAPHORE_DB_DIALECT: mysql # for postgres, change to: postgres
-# SEMAPHORE_DB: semaphore
-# SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
-# SEMAPHORE_ADMIN_PASSWORD: changeme
-# SEMAPHORE_ADMIN_NAME: admin
-# SEMAPHORE_ADMIN_EMAIL: admin@localhost
-# SEMAPHORE_ADMIN: admin
-
+SECRET_KEY = secrets.token_hex(32)
 
 SEMAPHORE_DB_HOST = data.get("SEMAPHORE_DB_HOST", "mysql")
-SEMAPHORE_PLAYBOOK_PATH = data.get("SEMAPHORE_PLAYBOOK_PATH", "/tmp/semaphore/")
-SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "changeme")
+SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
 SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
-SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@localhost")
+SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@admin.com")
 SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
 
 app_config = {
@@ -60,12 +49,13 @@ app_config = {
     "SEMAPHORE_DB_DIALECT": "mysql",
     "SEMAPHORE_DB": MARIADB_DATABASE,
 
-    "SEMAPHORE_PLAYBOOK_PATH": SEMAPHORE_PLAYBOOK_PATH,
     "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
     "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
     "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
-    "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN
-
+    "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN,
+    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY
 }
+
+agent.write_envfile("app.env", app_config)
 
 #agent.dump_env()
