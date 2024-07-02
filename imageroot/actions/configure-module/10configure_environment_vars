@@ -17,17 +17,55 @@ data = json.load(sys.stdin)
 # we read a json stdin {"vars1":true, "var2":"foo", "vars3": 3} and we writ it to .config/state/environment
 # Upper case to set environment variable and minor case to read from stdin
 
-# this values must exists in the json stdin
-# agent.set_env("MAIL_SERVER", data["mail_server"])
-# agent.set_env("LDAP_DOMAIN", data["ldap_domain"])
+MARIADB_ROOT_PASSWORD = data.get("MARIADB_ROOT_PASSWORD", "Nethesis@1234")
+MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
+MARIADB_USER = data.get("MARIADB_USER", "semaphore")
+MARIADB_PASSWORD = data.get("MARIADB_PASSWORD", "Nethesis@1234")
+MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
 
-# you can add default values for the following variables
-# agent.set_env("MAIL_DOMAIN",data.get("mail_domain",""))
-# agent.set_env("WOWORKERSCOUNT",data.get("workers_count",3))
-# agent.set_env("AUXILIARYACCOUNT",data.get("auxiliary_account",True))
-# agent.set_env("ACTIVESYNC",data.get("activesync",False))
+maria_db = {
+    "MARIADB_ROOT_PASSWORD": MARIADB_ROOT_PASSWORD,
+    "MARIADB_DATABASE": MARIADB_DATABASE,
+    "MARIADB_USER": MARIADB_USER,
+    "MARIADB_PASSWORD": MARIADB_PASSWORD,
+    "MARIADB_AUTO_UPGRADE": MARIADB_AUTO_UPGRADE
+}
+agent.write_envfile("database.env", maria_db)
+
+# SEMAPHORE_DB_USER: semaphore
+# SEMAPHORE_DB_PASS: semaphore
+# SEMAPHORE_DB_HOST: mysql # for postgres, change to: postgres
+# SEMAPHORE_DB_PORT: 3306 # change to 5432 for postgres
+# SEMAPHORE_DB_DIALECT: mysql # for postgres, change to: postgres
+# SEMAPHORE_DB: semaphore
+# SEMAPHORE_PLAYBOOK_PATH: /tmp/semaphore/
+# SEMAPHORE_ADMIN_PASSWORD: changeme
+# SEMAPHORE_ADMIN_NAME: admin
+# SEMAPHORE_ADMIN_EMAIL: admin@localhost
+# SEMAPHORE_ADMIN: admin
 
 
-# Make sure everything is saved inside the environment file
-# just before starting systemd unit
+SEMAPHORE_DB_HOST = data.get("SEMAPHORE_DB_HOST", "mysql")
+SEMAPHORE_PLAYBOOK_PATH = data.get("SEMAPHORE_PLAYBOOK_PATH", "/tmp/semaphore/")
+SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "changeme")
+SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
+SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@localhost")
+SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
+
+app_config = {
+    "SEMAPHORE_DB_USER": MARIADB_USER,
+    "SEMAPHORE_DB_PASS": MARIADB_PASSWORD,
+    "SEMAPHORE_DB_HOST": "mariadb-app",
+    "SEMAPHORE_DB_PORT": "3306",
+    "SEMAPHORE_DB_DIALECT": "mysql",
+    "SEMAPHORE_DB": MARIADB_DATABASE,
+
+    "SEMAPHORE_PLAYBOOK_PATH": SEMAPHORE_PLAYBOOK_PATH,
+    "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
+    "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
+    "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
+    "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN
+
+}
+
 #agent.dump_env()

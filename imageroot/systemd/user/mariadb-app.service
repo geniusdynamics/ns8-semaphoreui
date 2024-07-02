@@ -18,13 +18,8 @@ ExecStartPre=/bin/rm -f %t/mariadb-app.pid %t/mariadb-app.ctr-id
 ExecStart=/usr/bin/podman run --conmon-pidfile %t/mariadb-app.pid \
     --cidfile %t/mariadb-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/semaphoreui.pod-id --replace -d --name mariadb-app \
-    --env-file=%S/state/environment \
+    --env-file=%S/state/database.env \
     --volume mysql-data:/var/lib/mysql/:Z \
-    --env MARIADB_ROOT_PASSWORD=Nethesis,1234 \
-    --env MARIADB_DATABASE=semaphoreui \
-    --env MARIADB_USER=semaphoreui \
-    --env MARIADB_PASSWORD=semaphoreui \
-    --env MARIADB_AUTO_UPGRADE=1 \
     ${MARIADB_IMAGE} \
     --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 ExecStartPost=/usr/bin/podman exec  mariadb-app /bin/bash -c 'printf "[client] \npassword=Nethesis,1234" > /root/.my.cnf'
