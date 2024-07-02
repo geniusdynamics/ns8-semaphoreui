@@ -4,30 +4,30 @@
 #
 
 #
-# This systemd unit starts a kickstart instance using Podman.
+# This systemd unit starts a semaphoreui instance using Podman.
 # Most parts of this file come from podman-generate-systemd.
 #
 
 [Unit]
-Description=Podman kickstart.service
-Requires=mariadb-app.service kickstart-app.service
-Before=mariadb-app.service kickstart-app.service
+Description=Podman semaphoreui.service
+Requires=mariadb-app.service semaphoreui-app.service
+Before=mariadb-app.service semaphoreui-app.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
 EnvironmentFile=-%S/state/environment
 Restart=always
 TimeoutStopSec=70
-ExecStartPre=/bin/rm -f %t/kickstart.pid %t/kickstart.pod-id
-ExecStartPre=/usr/bin/podman pod create --infra-conmon-pidfile %t/kickstart.pid \
-    --pod-id-file %t/kickstart.pod-id \
-    --name kickstart \
+ExecStartPre=/bin/rm -f %t/semaphoreui.pid %t/semaphoreui.pod-id
+ExecStartPre=/usr/bin/podman pod create --infra-conmon-pidfile %t/semaphoreui.pid \
+    --pod-id-file %t/semaphoreui.pod-id \
+    --name semaphoreui \
     --publish 127.0.0.1:${TCP_PORT}:80 \
     --replace
-ExecStart=/usr/bin/podman pod start --pod-id-file %t/kickstart.pod-id
-ExecStop=/usr/bin/podman pod stop --ignore --pod-id-file %t/kickstart.pod-id -t 10
-ExecStopPost=/usr/bin/podman pod rm --ignore -f --pod-id-file %t/kickstart.pod-id
-PIDFile=%t/kickstart.pid
+ExecStart=/usr/bin/podman pod start --pod-id-file %t/semaphoreui.pod-id
+ExecStop=/usr/bin/podman pod stop --ignore --pod-id-file %t/semaphoreui.pod-id -t 10
+ExecStopPost=/usr/bin/podman pod rm --ignore -f --pod-id-file %t/semaphoreui.pod-id
+PIDFile=%t/semaphoreui.pid
 Type=forking
 
 [Install]
