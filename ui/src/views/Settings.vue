@@ -61,6 +61,48 @@
                 $t("settings.enabled")
               }}</template>
             </cv-toggle>
+            <cv-text-input
+                :label="$t('settings.SEMAPHORE_ADMIN')"
+                placeholder="s"
+                v-model="SEMAPHORE_ADMIN"
+                class="mg-bottom"
+                :invalid-message="$t(error.SEMAPHORE_ADMIN)"
+                :disabled="loading.getConfiguration || loading.configureModule"
+                ref="SEMAPHORE_ADMIN"
+            >
+            </cv-text-input>
+            <cv-text-input
+                :label="$t('settings.SEMAPHORE_ADMIN_NAME')"
+                placeholder="s"
+                v-model="SEMAPHORE_ADMIN_NAME"
+                class="mg-bottom"
+                :invalid-message="$t(error.SEMAPHORE_ADMIN_NAME)"
+                :disabled="loading.getConfiguration || loading.configureModule"
+                ref="SEMAPHORE_ADMIN_NAME"
+            >
+            </cv-text-input>
+            <cv-text-input
+                :label="$t('settings.SEMAPHORE_ADMIN_EMAIL')"
+                placeholder="s"
+                v-model="SEMAPHORE_ADMIN_EMAIL"
+                class="mg-bottom"
+                :invalid-message="$t(error.SEMAPHORE_ADMIN_EMAIL)"
+                :disabled="loading.getConfiguration || loading.configureModule"
+                ref="SEMAPHORE_ADMIN_EMAIL"
+                type="email"
+            >
+            </cv-text-input>
+            <cv-text-input
+                :label="$t('settings.SEMAPHORE_ADMIN_PASSWORD')"
+                placeholder="s"
+                v-model="SEMAPHORE_ADMIN_PASSWORD"
+                class="mg-bottom"
+                :invalid-message="$t(error.SEMAPHORE_ADMIN_PASSWORD)"
+                :disabled="loading.getConfiguration || loading.configureModule"
+                ref="SEMAPHORE_ADMIN_PASSWORD"
+                type="password"
+            >
+            </cv-text-input>
               <!-- advanced options -->
             <cv-accordion ref="accordion" class="maxwidth mg-bottom">
               <cv-accordion-item :open="toggleAccordion[0]">
@@ -125,6 +167,10 @@ export default {
       host: "",
       isLetsEncryptEnabled: false,
       isHttpToHttpsEnabled: true,
+      SEMAPHORE_ADMIN_PASSWORD: "",
+      SEMAPHORE_ADMIN_NAME: "",
+      SEMAPHORE_ADMIN_EMAIL: "",
+      SEMAPHORE_ADMIN: "",
       loading: {
         getConfiguration: false,
         configureModule: false,
@@ -135,6 +181,10 @@ export default {
         host: "",
         lets_encrypt: "",
         http2https: "",
+        SEMAPHORE_ADMIN_PASSWORD: "",
+        SEMAPHORE_ADMIN_NAME: "",
+        SEMAPHORE_ADMIN_EMAIL: "",
+        SEMAPHORE_ADMIN: "",
       },
     };
   },
@@ -271,6 +321,10 @@ export default {
             host: this.host,
             lets_encrypt: this.isLetsEncryptEnabled,
             http2https: this.isHttpToHttpsEnabled,
+            SEMAPHORE_ADMIN: this.SEMAPHORE_ADMIN,
+            SEMAPHORE_ADMIN_NAME: this.SEMAPHORE_ADMIN_NAME,
+            SEMAPHORE_ADMIN_EMAIL: this.SEMAPHORE_ADMIN_EMAIL,
+            SEMAPHORE_ADMIN_PASSWORD: this.SEMAPHORE_ADMIN_PASSWORD,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {
