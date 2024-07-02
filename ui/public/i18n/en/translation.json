@@ -38,7 +38,11 @@
     "instance_configuration": "Configure semaphoreui",
     "domain_already_used_in_traefik": "Domain already used in traefik",
     "host_pattern": "Must be a valid fully qualified domain name",
-    "host_format": "Must be a valid fully qualified domain name"
+    "host_format": "Must be a valid fully qualified domain name",
+    "SEMAPHORE_ADMIN_PASSWORD": "Semaphore admin password",
+    "SEMAPHORE_ADMIN_NAME": "Semaphore admin name",
+    "SEMAPHORE_ADMIN_EMAIL": "Semaphore admin email",
+    "SEMAPHORE_ADMIN": "Semaphore admin"
   },
   "about": {
     "title": "About"
