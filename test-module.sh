@@ -12,19 +12,19 @@ SSH_KEYFILE=${SSH_KEYFILE:-$HOME/.ssh/id_rsa}
 ssh_key="$(cat $SSH_KEYFILE)"
 
 podman run -i \
-    -v .:/home/pwuser/ns8-module:z \
+    -v .:/home/pwuser/ns8-semaphoreui:z \
     --name rf-core-runner ghcr.io/marketsquare/robotframework-browser/rfbrowser-stable:v10.0.3 \
     bash -l -s <<EOF
     set -e
     echo "$ssh_key" > /home/pwuser/ns8-key
     set -x
-    pip install -r /home/pwuser/ns8-module/tests/pythonreq.txt
+    pip install -r /home/pwuser/ns8-semaphoreui/tests/pythonreq.txt
     mkdir ~/outputs
-    cd /home/pwuser/ns8-module
+    cd /home/pwuser/ns8-semaphoreui
     robot -v NODE_ADDR:${LEADER_NODE} \
         -v IMAGE_URL:${IMAGE_URL} \
         -v SSH_KEYFILE:/home/pwuser/ns8-key \
-	-d ~/outputs /home/pwuser/ns8-module/tests/
+	-d ~/outputs /home/pwuser/ns8-semaphoreui/tests/
 EOF
 
 tests_res=$?
