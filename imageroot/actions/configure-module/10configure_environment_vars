@@ -9,6 +9,7 @@ import json
 import sys
 import agent
 import secrets
+import base64
 
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
@@ -33,7 +34,8 @@ maria_db = {
 }
 agent.write_envfile("database.env", maria_db)
 
-SECRET_KEY = secrets.token_hex(32)
+SECRET_KEY_BYTES = secrets.token_bytes(32)
+SECRET_KEY = base64.b64encode(SECRET_KEY_BYTES).decode('utf-8')
 
 SEMAPHORE_DB_HOST = data.get("SEMAPHORE_DB_HOST", "mysql")
 SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
