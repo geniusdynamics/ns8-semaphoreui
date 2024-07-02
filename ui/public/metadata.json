@@ -1,19 +1,23 @@
 {
   "name": "semaphoreui",
   "description": {
-    "en": "My semaphoreui module"
+    "en": "Semaphore is a responsive web UI for running Ansible playbooks, Terraform/OpenTofu and Pulumi code."
   },
-  "categories": [],
+  "categories": ["collaboration"],
   "authors": [
     {
-      "name": "Name Surname",
-      "email": "author@yourmail.org"
+      "name": "Kemboi Elvis",
+      "email": "kemboielvis@genius.ke"
+    },
+    {
+      "name": "Martin Bhuong",
+      "email": "martin@genius.ke"
     }
   ],
   "docs": {
     "documentation_url": "https://docs.semaphoreui.com/",
-    "bug_url": "https://github.com/NethServer/dev",
-    "code_url": "https://github.com/author/ns8-semaphoreui"
+    "bug_url": "https://github.com/geniusdynamics/dev",
+    "code_url": "https://github.com/geniusdynamics/ns8-semaphoreui"
   },
   "source": "ghcr.io/nethserver/semaphoreui"
 }
