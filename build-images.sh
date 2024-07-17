@@ -14,6 +14,7 @@ images=()
 repobase="${REPOBASE:-ghcr.io/geniusdynamics}"
 # Configure the image name
 reponame="semaphoreui"
+APP_VERSION="v2.10.18"
 
 # Create a new empty container image
 container=$(buildah from scratch)
@@ -45,7 +46,7 @@ buildah config --entrypoint=/ \
     --label="org.nethserver.authorizations=traefik@node:routeadm" \
     --label="org.nethserver.tcp-ports-demand=1" \
     --label="org.nethserver.rootfull=0" \
-    --label="org.nethserver.images=docker.io/mariadb:10.11.5 docker.io/semaphoreui/semaphore:latest" \
+    --label="org.nethserver.images=docker.io/mariadb:10.11.5 docker.io/semaphoreui/semaphore:${APP_VERSION}" \
     "${container}"
 # Commit the image
 buildah commit "${container}" "${repobase}/${reponame}"
