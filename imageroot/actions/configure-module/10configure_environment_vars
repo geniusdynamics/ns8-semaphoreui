@@ -8,53 +8,23 @@
 import json
 import sys
 import agent
-import secrets
-import base64
 
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
 #This is specific to you module, so you need to change it accordingly.
-# we read a json stdin {"vars1":true, "var2":"foo", "vars3": 3} and we writ it to .config/state/environment
-# Upper case to set environment variable and minor case to read from stdin
 
-MARIADB_ROOT_PASSWORD = data.get("MARIADB_ROOT_PASSWORD", "Nethesis@1234")
-MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
-MARIADB_USER = data.get("MARIADB_USER", "semaphore")
-MARIADB_PASSWORD = data.get("MARIADB_PASSWORD", "Nethesis@1234")
-MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
-
-maria_db = {
-    "MARIADB_ROOT_PASSWORD": MARIADB_ROOT_PASSWORD,
-    "MARIADB_DATABASE": MARIADB_DATABASE,
-    "MARIADB_USER": MARIADB_USER,
-    "MARIADB_PASSWORD": MARIADB_PASSWORD,
-    "MARIADB_AUTO_UPGRADE": MARIADB_AUTO_UPGRADE
-}
-agent.write_envfile("database.env", maria_db)
-
-SECRET_KEY_BYTES = secrets.token_bytes(32)
-SECRET_KEY = base64.b64encode(SECRET_KEY_BYTES).decode('utf-8')
-
-SEMAPHORE_DB_HOST = data.get("SEMAPHORE_DB_HOST", "mysql")
 SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
 SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
 SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@admin.com")
 SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
 
 app_config = {
-    "SEMAPHORE_DB_USER": MARIADB_USER,
-    "SEMAPHORE_DB_PASS": MARIADB_PASSWORD,
-    "SEMAPHORE_DB_HOST": "mariadb-app",
-    "SEMAPHORE_DB_PORT": "3306",
-    "SEMAPHORE_DB_DIALECT": "mysql",
-    "SEMAPHORE_DB": MARIADB_DATABASE,
     "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
     "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
     "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
     "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN,
-    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY
 }
 
 agent.write_envfile("app.env", app_config)

@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import agent
+import secrets
+import base64
+import os
+
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+#This is specific to you module, so you need to change it accordingly.
+def generate_random_password(length):
+    # Generate random bytes and convert them to a hexadecimal string
+    random_bytes = os.urandom(length)
+    password = random_bytes.hex()
+    return password[:length]
+
+MARIADB_ROOT_PASSWORD = generate_random_password(16)
+MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
+MARIADB_USER = data.get("MARIADB_USER", "semaphore")
+MARIADB_PASSWORD = generate_random_password(16)
+MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
+
+maria_db = {
+    "MARIADB_ROOT_PASSWORD": MARIADB_ROOT_PASSWORD,
+    "MARIADB_DATABASE": MARIADB_DATABASE,
+    "MARIADB_USER": MARIADB_USER,
+    "MARIADB_PASSWORD": MARIADB_PASSWORD,
+    "MARIADB_AUTO_UPGRADE": MARIADB_AUTO_UPGRADE
+}
+agent.write_envfile("database.env", maria_db)
+
+SECRET_KEY_BYTES = secrets.token_bytes(32)
+SECRET_KEY = base64.b64encode(SECRET_KEY_BYTES).decode('utf-8')
+
+SEMAPHORE_DB_HOST = data.get("SEMAPHORE_DB_HOST", "mysql")
+
+app_config = {
+    "SEMAPHORE_DB_USER": MARIADB_USER,
+    "SEMAPHORE_DB_PASS": MARIADB_PASSWORD,
+    "SEMAPHORE_DB_HOST": "mariadb-app",
+    "SEMAPHORE_DB_PORT": "3306",
+    "SEMAPHORE_DB_DIALECT": "mysql",
+    "SEMAPHORE_DB": MARIADB_DATABASE,
+    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY
+}
+
+agent.write_envfile("app-db.env", app_config)
+
+#agent.dump_env()
