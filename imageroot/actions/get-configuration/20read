@@ -13,6 +13,17 @@ import os
 import sys
 import json
 import agent
+from agent.ldapproxy import Ldapproxy
+
+# retrieve LDAP domains list
+lp = Ldapproxy()
+domains = []
+for key in lp.get_domains_list():
+    domains.append({
+        "name": key,
+        "label": key,
+        "value": key,
+    })
 
 # Prepare return variable
 config = {}
@@ -21,6 +32,8 @@ config = {}
 config["host"] = os.getenv("TRAEFIK_HOST","")
 config["http2https"] = os.getenv("TRAEFIK_HTTP2HTTPS") == "True"
 config["lets_encrypt"] = os.getenv("TRAEFIK_LETS_ENCRYPT") == "True"
+config["ldap_domain"] = os.getenv("LDAP_DOMAIN")
+config['domains_list'] = domains
 
 # Dump the configuration to stdout
 json.dump(config, fp=sys.stdout)
