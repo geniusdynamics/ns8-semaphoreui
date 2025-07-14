@@ -16,7 +16,7 @@ if ! systemctl --user -q is-active semaphoreui.service; then
 fi
 
 podman exec mariadb-app mysqldump \
-	--databases semaphoreui \
+	--databases semaphore \
 	--user=root \
 	--password="$MARIADB_ROOT_PASSWORD" \
 	--default-character-set=utf8mb4 \
