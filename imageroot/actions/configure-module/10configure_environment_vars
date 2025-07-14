@@ -43,7 +43,7 @@ rdb = agent.redis_connect(use_replica=True)
 smtp_settings = agent.get_smarthost_settings(rdb)
 
 MAIL_FROM_ADDRESS = smtp_settings['username']
-MAIL_FROM_NAME = f"DOCMOST <{MAIL_FROM_ADDRESS}>"
+MAIL_FROM_NAME = f"SEMAPHORE <{MAIL_FROM_ADDRESS}>"
 SMTP_HOST = smtp_settings['host']
 SMTP_PORT = smtp_settings['port']
 SMTP_USERNAME = smtp_settings['username']
