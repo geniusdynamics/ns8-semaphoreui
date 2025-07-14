@@ -8,108 +8,114 @@ import sys
 import agent
 import secrets
 import base64
-from agent.ldapproxy import Ldapproxy
+import os
 
-# Parse stdin as JSON
+# Parse JSON input
 data = json.load(sys.stdin)
 
-# Get LDAP domain
-ldap_domain = data.get("ldap_domain", "")
-agent.set_env("LDAP_DOMAIN", ldap_domain)
+# MariaDB config
+MARIADB_ROOT_PASSWORD = data.get("MARIADB_ROOT_PASSWORD", "Nethesis@1234")
+MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
+MARIADB_USER = data.get("MARIADB_USER", "semaphore")
+MARIADB_PASSWORD = data.get("MARIADB_PASSWORD", "Nethesis@1234")
+MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
 
-# Unset old LDAP variables
-for key in [
-    "LDAP_HOSTNAME", "LDAP_PORT", "LDAP_SEARCH_BIND_DN", "LDAP_SEARCH_BIND_PASSWORD",
-    "LDAP_USER_BASE_DN", "LDAP_MEMBER_ATTRIBUTE", "LDAP_MEMBER_ATTRIBUTE_TYPE",
-    "LDAP_GROUP_BASE_DN", "LDAP_USERNAME_ATTRIBUTE", "LDAP_USER_SEARCH_FILTER",
-    "LDAP_GROUP_SEARCH_FILTER"
-]:
-    agent.unset_env(key)
+maria_db = {
+    "MARIADB_ROOT_PASSWORD": MARIADB_ROOT_PASSWORD,
+    "MARIADB_DATABASE": MARIADB_DATABASE,
+    "MARIADB_USER": MARIADB_USER,
+    "MARIADB_PASSWORD": MARIADB_PASSWORD,
+    "MARIADB_AUTO_UPGRADE": MARIADB_AUTO_UPGRADE
+}
+agent.write_envfile("database.env", maria_db)
 
-# If LDAP domain is set, bind and set values
-if ldap_domain:
-    agent.bind_user_domains([ldap_domain])
-    odom = Ldapproxy().get_domain(ldap_domain)
-    base_dn = odom["base_dn"]
-
-    agent.set_env("LDAP_HOSTNAME", "10.0.2.2")
-    agent.set_env("LDAP_PORT", odom["port"])
-    agent.set_env("LDAP_SEARCH_BIND_DN", odom["bind_dn"])
-    agent.set_env("LDAP_SEARCH_BIND_PASSWORD", odom["bind_password"])
-
-    if odom["schema"] == "rfc2307":
-        agent.set_env("LDAP_USER_BASE_DN", f"ou=People,{base_dn}")
-        agent.set_env("LDAP_MEMBER_ATTRIBUTE", "memberUid")
-        agent.set_env("LDAP_MEMBER_ATTRIBUTE_TYPE", "uid")
-        agent.set_env("LDAP_GROUP_BASE_DN", f"ou=Groups,{base_dn}")
-
-    if odom["schema"] == "ad":
-        agent.set_env("LDAP_USER_BASE_DN", f"cn=Users,{base_dn}")
-        agent.set_env("LDAP_GROUP_BASE_DN", f"cn=Users,{base_dn}")
-        agent.set_env("LDAP_USERNAME_ATTRIBUTE", "samaccountname")
-        agent.set_env("LDAP_USER_SEARCH_FILTER", "(&(objectClass=top)(objectClass=user)(objectClass=person)(objectClass=organizationalPerson))")
-        agent.set_env("LDAP_GROUP_SEARCH_FILTER", "(&(objectClass=top)(objectClass=group))")
-else:
-    agent.bind_user_domains([])
-
-# MariaDB configuration
-agent.set_env("MARIADB_ROOT_PASSWORD", data.get("MARIADB_ROOT_PASSWORD", "Nethesis@1234"))
-agent.set_env("MARIADB_DATABASE", data.get("MARIADB_DATABASE", "semaphore"))
-agent.set_env("MARIADB_USER", data.get("MARIADB_USER", "semaphore"))
-agent.set_env("MARIADB_PASSWORD", data.get("MARIADB_PASSWORD", "Nethesis@1234"))
-agent.set_env("MARIADB_AUTO_UPGRADE", data.get("MARIADB_AUTO_UPGRADE", "1"))
-
-# Semaphore admin settings
-agent.set_env("SEMAPHORE_ADMIN_PASSWORD", data.get("SEMAPHORE_ADMIN_PASSWORD", "password"))
-agent.set_env("SEMAPHORE_ADMIN_NAME", data.get("SEMAPHORE_ADMIN_NAME", "admin"))
-agent.set_env("SEMAPHORE_ADMIN_EMAIL", data.get("SEMAPHORE_ADMIN_EMAIL", "admin@admin.com"))
-agent.set_env("SEMAPHORE_ADMIN", data.get("SEMAPHORE_ADMIN", "admin"))
-
-# SMTP settings via smarthost
-rdb = agent.redis_connect(use_replica=True)
-smtp = agent.get_smarthost_settings(rdb)
-
-agent.set_env("SEMAPHORE_EMAIL_SENDER", f"DOCMOST <{smtp['username']}>")
-agent.set_env("SEMAPHORE_EMAIL_HOST", smtp["host"])
-agent.set_env("SEMAPHORE_EMAIL_PORT", str(smtp["port"]))
-agent.set_env("SEMAPHORE_EMAIL_USERNAME", smtp["username"])
-agent.set_env("SEMAPHORE_EMAIL_PASSWORD", smtp["password"])
-
-# Semaphore DB connection
-agent.set_env("SEMAPHORE_DB_USER", data.get("MARIADB_USER", "semaphore"))
-agent.set_env("SEMAPHORE_DB_PASS", data.get("MARIADB_PASSWORD", "Nethesis@1234"))
-agent.set_env("SEMAPHORE_DB_HOST", "mariadb-app")
-agent.set_env("SEMAPHORE_DB_PORT", "3306")
-agent.set_env("SEMAPHORE_DB_DIALECT", "mysql")
-agent.set_env("SEMAPHORE_DB", data.get("MARIADB_DATABASE", "semaphore"))
-
-# Semaphore encryption key
+# Semaphore app config
 SECRET_KEY_BYTES = secrets.token_bytes(32)
 SECRET_KEY = base64.b64encode(SECRET_KEY_BYTES).decode('utf-8')
-agent.set_env("SEMAPHORE_ACCESS_KEY_ENCRYPTION", SECRET_KEY)
 
-# Gotify notifications
-agent.set_env("SEMAPHORE_GOTIFY_ALERT", data.get("SEMAPHORE_GOTIFY_ALERT", "False"))
-agent.set_env("SEMAPHORE_GOTIFY_URL", data.get("SEMAPHORE_GOTIFY_URL", ""))
-agent.set_env("SEMAPHORE_GOTIFY_TOKEN", data.get("SEMAPHORE_GOTIFY_TOKEN", ""))
+SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
+SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
+SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@admin.com")
+SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
 
-# Telegram notifications
-agent.set_env("SEMAPHORE_TELEGRAM_ALERT", data.get("SEMAPHORE_TELEGRAM_ALERT", "False"))
-agent.set_env("SEMAPHORE_TELEGRAM_CHAT", data.get("SEMAPHORE_TELEGRAM_CHAT", ""))
-agent.set_env("SEMAPHORE_TELEGRAM_TOKEN", data.get("SEMAPHORE_TELEGRAM_TOKEN", ""))
+# Get SmartHost
+rdb = agent.redis_connect(use_replica=True)
+smtp_settings = agent.get_smarthost_settings(rdb)
 
-# LDAP Semaphore-specific
-agent.set_env("SEMAPHORE_LDAP_ENABLE", "True" if ldap_domain else "False")
-agent.set_env("SEMAPHORE_LDAP_BIND_DN", os.getenv("LDAP_SEARCH_BIND_DN", ""))
-agent.set_env("SEMAPHORE_LDAP_BIND_PASSWORD", os.getenv("LDAP_SEARCH_BIND_PASSWORD", ""))
-agent.set_env("SEMAPHORE_LDAP_SERVER", os.getenv("LDAP_HOSTNAME", ""))
-agent.set_env("SEMAPHORE_LDAP_SEARCH_DN", os.getenv("LDAP_USER_BASE_DN", ""))
-agent.set_env("SEMAPHORE_LDAP_SEARCH_FILTER", os.getenv("LDAP_USER_SEARCH_FILTER", ""))
-agent.set_env("SEMAPHORE_LDAP_NEEDTLS", "False")
-agent.set_env("SEMAPHORE_LDAP_MAPPING_DN", "dn")
-agent.set_env("SEMAPHORE_LDAP_MAPPING_MAIL", "mail")
-agent.set_env("SEMAPHORE_LDAP_MAPPING_UID", "uid")
-agent.set_env("SEMAPHORE_LDAP_MAPPING_CN", "cn")
+MAIL_FROM_ADDRESS = smtp_settings['username']
+MAIL_FROM_NAME = f"DOCMOST <{MAIL_FROM_ADDRESS}>"
+SMTP_HOST = smtp_settings['host']
+SMTP_PORT = smtp_settings['port']
+SMTP_USERNAME = smtp_settings['username']
+SMTP_PASSWORD = smtp_settings['password']
 
-# Finalize
+# Optional Gotify + Telegram
+SEMAPHORE_GOTIFY_ALERT = data.get("SEMAPHORE_GOTIFY_ALERT", "False")
+SEMAPHORE_GOTIFY_URL = data.get("SEMAPHORE_GOTIFY_URL", "")
+SEMAPHORE_GOTIFY_TOKEN = data.get("SEMAPHORE_GOTIFY_TOKEN", "")
+
+SEMAPHORE_TELEGRAM_ALERT = data.get("SEMAPHORE_TELEGRAM_ALERT", "False")
+SEMAPHORE_TELEGRAM_CHAT = data.get("SEMAPHORE_TELEGRAM_CHAT", "")
+SEMAPHORE_TELEGRAM_TOKEN = data.get("SEMAPHORE_TELEGRAM_TOKEN", "")
+
+# Set LDAP domain (to support discover)
+ldap_domain = data.get("ldap_domain", "")
+agent.set_env("LDAP_DOMAIN", ldap_domain)
+agent.bind_user_domains([ldap_domain] if ldap_domain else [])
+
+# Read from env: assume discover-ldap.py already set these
+SEMAPHORE_LDAP_ENABLE = "True" if ldap_domain else "False"
+SEMAPHORE_LDAP_BIND_DN = os.getenv("LDAP_SEARCH_BIND_DN", "")
+SEMAPHORE_LDAP_BIND_PASSWORD = os.getenv("LDAP_SEARCH_BIND_PASSWORD", "")
+SEMAPHORE_LDAP_SERVER = os.getenv("LDAP_HOSTNAME", "")
+SEMAPHORE_LDAP_SEARCH_DN = os.getenv("LDAP_USER_BASE_DN", "")
+SEMAPHORE_LDAP_SEARCH_FILTER = os.getenv("LDAP_USER_SEARCH_FILTER", "")
+SEMAPHORE_LDAP_NEEDTLS = "False"
+
+app_config = {
+    "SEMAPHORE_DB_USER": MARIADB_USER,
+    "SEMAPHORE_DB_PASS": MARIADB_PASSWORD,
+    "SEMAPHORE_DB_HOST": "mariadb-app",
+    "SEMAPHORE_DB_PORT": "3306",
+    "SEMAPHORE_DB_DIALECT": "mysql",
+    "SEMAPHORE_DB": MARIADB_DATABASE,
+
+    "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
+    "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
+    "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
+    "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN,
+    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY,
+
+    # SMTP
+    "SEMAPHORE_EMAIL_SENDER": MAIL_FROM_NAME,
+    "SEMAPHORE_EMAIL_HOST": SMTP_HOST,
+    "SEMAPHORE_EMAIL_PORT": str(SMTP_PORT),
+    "SEMAPHORE_EMAIL_USERNAME": SMTP_USERNAME,
+    "SEMAPHORE_EMAIL_PASSWORD": SMTP_PASSWORD,
+
+    # Gotify
+    "SEMAPHORE_GOTIFY_ALERT": SEMAPHORE_GOTIFY_ALERT,
+    "SEMAPHORE_GOTIFY_URL": SEMAPHORE_GOTIFY_URL,
+    "SEMAPHORE_GOTIFY_TOKEN": SEMAPHORE_GOTIFY_TOKEN,
+
+    # Telegram
+    "SEMAPHORE_TELEGRAM_ALERT": SEMAPHORE_TELEGRAM_ALERT,
+    "SEMAPHORE_TELEGRAM_CHAT": SEMAPHORE_TELEGRAM_CHAT,
+    "SEMAPHORE_TELEGRAM_TOKEN": SEMAPHORE_TELEGRAM_TOKEN,
+
+    # LDAP
+    "SEMAPHORE_LDAP_ENABLE": SEMAPHORE_LDAP_ENABLE,
+    "SEMAPHORE_LDAP_BIND_DN": SEMAPHORE_LDAP_BIND_DN,
+    "SEMAPHORE_LDAP_BIND_PASSWORD": SEMAPHORE_LDAP_BIND_PASSWORD,
+    "SEMAPHORE_LDAP_SERVER": SEMAPHORE_LDAP_SERVER,
+    "SEMAPHORE_LDAP_SEARCH_DN": SEMAPHORE_LDAP_SEARCH_DN,
+    "SEMAPHORE_LDAP_SEARCH_FILTER": SEMAPHORE_LDAP_SEARCH_FILTER,
+    "SEMAPHORE_LDAP_NEEDTLS": SEMAPHORE_LDAP_NEEDTLS,
+    "SEMAPHORE_LDAP_MAPPING_DN": "dn",
+    "SEMAPHORE_LDAP_MAPPING_MAIL": "mail",
+    "SEMAPHORE_LDAP_MAPPING_UID": "uid",
+    "SEMAPHORE_LDAP_MAPPING_CN": "cn"
+}
+
+agent.write_envfile("app.env", app_config)
 agent.dump_env()
