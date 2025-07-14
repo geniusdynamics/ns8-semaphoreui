@@ -15,10 +15,7 @@ import base64
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
-#This is specific to you module, so you need to change it accordingly.
-# we read a json stdin {"vars1":true, "var2":"foo", "vars3": 3} and we writ it to .config/state/environment
-# Upper case to set environment variable and minor case to read from stdin
-
+# MariaDB config
 MARIADB_ROOT_PASSWORD = data.get("MARIADB_ROOT_PASSWORD", "Nethesis@1234")
 MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
 MARIADB_USER = data.get("MARIADB_USER", "semaphore")
@@ -34,6 +31,7 @@ maria_db = {
 }
 agent.write_envfile("database.env", maria_db)
 
+# Semaphore app config
 SECRET_KEY_BYTES = secrets.token_bytes(32)
 SECRET_KEY = base64.b64encode(SECRET_KEY_BYTES).decode('utf-8')
 
@@ -42,6 +40,27 @@ SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
 SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
 SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@admin.com")
 SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
+
+# Get SMTP from SmartHost
+rdb = agent.redis_connect(use_replica=True)
+smtp_settings = agent.get_smarthost_settings(rdb)
+
+MAIL_DRIVER = "smtp"
+MAIL_FROM_ADDRESS = smtp_settings['username']
+MAIL_FROM_NAME = f"DOCMOST <{MAIL_FROM_ADDRESS}>"
+SMTP_HOST = smtp_settings['host']
+SMTP_PORT = smtp_settings['port']
+SMTP_USERNAME = smtp_settings['username']
+SMTP_PASSWORD = smtp_settings['password']
+
+# Optional Gotify + Telegram
+SEMAPHORE_GOTIFY_ALERT = data.get("SEMAPHORE_GOTIFY_ALERT", "False")
+SEMAPHORE_GOTIFY_URL = data.get("SEMAPHORE_GOTIFY_URL", "")
+SEMAPHORE_GOTIFY_TOKEN = data.get("SEMAPHORE_GOTIFY_TOKEN", "")
+
+SEMAPHORE_TELEGRAM_ALERT = data.get("SEMAPHORE_TELEGRAM_ALERT", "False")
+SEMAPHORE_TELEGRAM_CHAT = data.get("SEMAPHORE_TELEGRAM_CHAT", "")
+SEMAPHORE_TELEGRAM_TOKEN = data.get("SEMAPHORE_TELEGRAM_TOKEN", "")
 
 app_config = {
     "SEMAPHORE_DB_USER": MARIADB_USER,
@@ -54,9 +73,24 @@ app_config = {
     "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
     "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
     "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN,
-    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY
+    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY,
+
+    # SMTP/Email settings
+    "SEMAPHORE_EMAIL_SENDER": MAIL_FROM_NAME,
+    "SEMAPHORE_EMAIL_HOST": SMTP_HOST,
+    "SEMAPHORE_EMAIL_PORT": str(SMTP_PORT),
+    "SEMAPHORE_EMAIL_USERNAME": SMTP_USERNAME,
+    "SEMAPHORE_EMAIL_PASSWORD": SMTP_PASSWORD,
+
+    # Gotify alerts
+    "SEMAPHORE_GOTIFY_ALERT": SEMAPHORE_GOTIFY_ALERT,
+    "SEMAPHORE_GOTIFY_URL": SEMAPHORE_GOTIFY_URL,
+    "SEMAPHORE_GOTIFY_TOKEN": SEMAPHORE_GOTIFY_TOKEN,
+
+    # Telegram alerts
+    "SEMAPHORE_TELEGRAM_ALERT": SEMAPHORE_TELEGRAM_ALERT,
+    "SEMAPHORE_TELEGRAM_CHAT": SEMAPHORE_TELEGRAM_CHAT,
+    "SEMAPHORE_TELEGRAM_TOKEN": SEMAPHORE_TELEGRAM_TOKEN
 }
 
 agent.write_envfile("app.env", app_config)
-
-#agent.dump_env()
