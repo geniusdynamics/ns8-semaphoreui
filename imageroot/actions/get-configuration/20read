@@ -35,5 +35,10 @@ config["lets_encrypt"] = os.getenv("TRAEFIK_LETS_ENCRYPT") == "True"
 config["ldap_domain"] = os.getenv("LDAP_DOMAIN")
 config['domains_list'] = domains
 
+config["admin"] = os.getenv("SEMAPHORE_ADMIN","")
+config["admin_name"] = os.getenv("SEMAPHORE_ADMIN_NAME","")
+config["admin_email"] = os.getenv("SEMAPHORE_ADMIN_EMAIL","")
+config["admin_password"] = os.getenv("SEMAPHORE_ADMIN_PASSWORD","")
+
 # Dump the configuration to stdout
 json.dump(config, fp=sys.stdout)
