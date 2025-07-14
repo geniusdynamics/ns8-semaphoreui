@@ -6,16 +6,22 @@
 #
 
 set -e
-
+if [ -f database.env ]; then
+	set -a              # Export all variables automatically
+	source database.env # Load variables
+	set +a
+fi
 if ! systemctl --user -q is-active semaphoreui.service; then
-    exit 0
+	exit 0
 fi
 
 podman exec mariadb-app mysqldump \
-        --databases semaphoreui \
-        --default-character-set=utf8mb4 \
-        --skip-dump-date \
-        --ignore-table=mysql.event \
-        --single-transaction \
-        --quick \
-        --add-drop-table  > semaphoreui.sql
+	--databases semaphoreui \
+	--user=root \
+	--password="$MARIADB_ROOT_PASSWORD" \
+	--default-character-set=utf8mb4 \
+	--skip-dump-date \
+	--ignore-table=mysql.event \
+	--single-transaction \
+	--quick \
+	--add-drop-table >semaphoreui.sql
