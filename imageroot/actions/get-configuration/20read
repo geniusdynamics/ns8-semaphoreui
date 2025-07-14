@@ -1,44 +1,30 @@
 #!/usr/bin/env python3
-
 #
 # Copyright (C) 2022 Nethesis S.r.l.
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
-
-#
 # Read configuration
 #
 
-import os
-import sys
-import json
-import agent
+import os, sys, json, agent
 from agent.ldapproxy import Ldapproxy
 
-# retrieve LDAP domains list
+# LDAP domains for combo-box
 lp = Ldapproxy()
-domains = []
-for key in lp.get_domains_list():
-    domains.append({
-        "name": key,
-        "label": key,
-        "value": key,
-    })
+domains = [{"name": k, "label": k, "value": k} for k in lp.get_domains_list()]
 
-# Prepare return variable
-config = {}
+config = {
+    "host":         os.getenv("TRAEFIK_HOST", ""),
+    "http2https":   os.getenv("TRAEFIK_HTTP2HTTPS") == "True",
+    "lets_encrypt": os.getenv("TRAEFIK_LETS_ENCRYPT") == "True",
+    "ldap_domain":  os.getenv("LDAP_DOMAIN", ""),
+    "domains_list": domains,
 
-# Read current configuration from the environment file
-config["host"] = os.getenv("TRAEFIK_HOST","")
-config["http2https"] = os.getenv("TRAEFIK_HTTP2HTTPS") == "True"
-config["lets_encrypt"] = os.getenv("TRAEFIK_LETS_ENCRYPT") == "True"
-config["ldap_domain"] = os.getenv("LDAP_DOMAIN")
-config['domains_list'] = domains
+    # Admin credentials – match UI field names exactly
+    "SEMAPHORE_ADMIN":          os.getenv("SEMAPHORE_ADMIN", ""),
+    "SEMAPHORE_ADMIN_NAME":     os.getenv("SEMAPHORE_ADMIN_NAME", ""),
+    "SEMAPHORE_ADMIN_EMAIL":    os.getenv("SEMAPHORE_ADMIN_EMAIL", ""),
+    "SEMAPHORE_ADMIN_PASSWORD": os.getenv("SEMAPHORE_ADMIN_PASSWORD", ""),
+}
 
-config["admin"] = os.getenv("SEMAPHORE_ADMIN","")
-config["admin_name"] = os.getenv("SEMAPHORE_ADMIN_NAME","")
-config["admin_email"] = os.getenv("SEMAPHORE_ADMIN_EMAIL","")
-config["admin_password"] = os.getenv("SEMAPHORE_ADMIN_PASSWORD","")
-
-# Dump the configuration to stdout
 json.dump(config, fp=sys.stdout)

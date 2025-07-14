@@ -13,79 +13,112 @@ import os
 # Parse JSON input
 data = json.load(sys.stdin)
 
-# Semaphore app config
-
+# ------------------------------------------------------------
+# 1. Core application settings (always required)
+# ------------------------------------------------------------
 SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
-SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
-SEMAPHORE_ADMIN_EMAIL = data.get("SEMAPHORE_ADMIN_EMAIL", "admin@admin.com")
-SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
+SEMAPHORE_ADMIN_NAME     = data.get("SEMAPHORE_ADMIN_NAME",     "admin")
+SEMAPHORE_ADMIN_EMAIL    = data.get("SEMAPHORE_ADMIN_EMAIL",    "admin@admin.com")
+SEMAPHORE_ADMIN          = data.get("SEMAPHORE_ADMIN",          "admin")
 
-# Get SmartHost
+# ------------------------------------------------------------
+# 2. Reverse-proxy / TLS settings (NEW)
+# ------------------------------------------------------------
+host             = data.get("host", "")
+lets_encrypt     = data.get("lets_encrypt", False)
+http2https       = data.get("http2https", True)
+
+agent.set_env("TRAEFIK_HOST", host)
+agent.set_env("TRAEFIK_LETS_ENCRYPT", "True" if lets_encrypt else "False")
+agent.set_env("TRAEFIK_HTTP2HTTPS",   "True" if http2https   else "False")
+
+# ------------------------------------------------------------
+# 3. SMTP via SmartHost (unchanged)
+# ------------------------------------------------------------
 rdb = agent.redis_connect(use_replica=True)
-smtp_settings = agent.get_smarthost_settings(rdb)
+smtp = agent.get_smarthost_settings(rdb)
 
-MAIL_FROM_ADDRESS = smtp_settings["username"]
-MAIL_FROM_NAME = f"SEMAPHORE <{MAIL_FROM_ADDRESS}>"
-SMTP_HOST = smtp_settings["host"]
-SMTP_PORT = smtp_settings["port"]
-SMTP_USERNAME = smtp_settings["username"]
-SMTP_PASSWORD = smtp_settings["password"]
+MAIL_FROM_NAME = f"SEMAPHORE <{smtp['username']}>"
 
-# Optional Gotify + Telegram
-SEMAPHORE_GOTIFY_ALERT = data.get("SEMAPHORE_GOTIFY_ALERT", "False")
-SEMAPHORE_GOTIFY_URL = data.get("SEMAPHORE_GOTIFY_URL", "")
-SEMAPHORE_GOTIFY_TOKEN = data.get("SEMAPHORE_GOTIFY_TOKEN", "")
+# ------------------------------------------------------------
+# 4. Optional notification channels (unchanged)
+# ------------------------------------------------------------
+SEMAPHORE_GOTIFY_ALERT   = data.get("SEMAPHORE_GOTIFY_ALERT",   "False")
+SEMAPHORE_GOTIFY_URL     = data.get("SEMAPHORE_GOTIFY_URL",     "")
+SEMAPHORE_GOTIFY_TOKEN   = data.get("SEMAPHORE_GOTIFY_TOKEN",   "")
 
 SEMAPHORE_TELEGRAM_ALERT = data.get("SEMAPHORE_TELEGRAM_ALERT", "False")
-SEMAPHORE_TELEGRAM_CHAT = data.get("SEMAPHORE_TELEGRAM_CHAT", "")
+SEMAPHORE_TELEGRAM_CHAT  = data.get("SEMAPHORE_TELEGRAM_CHAT",  "")
 SEMAPHORE_TELEGRAM_TOKEN = data.get("SEMAPHORE_TELEGRAM_TOKEN", "")
 
-# Set LDAP domain (to support discover)
+# ------------------------------------------------------------
+# 5. LDAP (unchanged – still driven by ldap_domain)
+# ------------------------------------------------------------
 ldap_domain = data.get("ldap_domain", "")
 agent.set_env("LDAP_DOMAIN", ldap_domain)
 agent.bind_user_domains([ldap_domain] if ldap_domain else [])
 
-# Read from env: assume discover-ldap.py already set these
-SEMAPHORE_LDAP_ENABLE = "True" if ldap_domain else "False"
-SEMAPHORE_LDAP_BIND_DN = os.getenv("LDAP_SEARCH_BIND_DN", "")
+SEMAPHORE_LDAP_ENABLE        = "True" if ldap_domain else "False"
+SEMAPHORE_LDAP_BIND_DN       = os.getenv("LDAP_SEARCH_BIND_DN",      "")
 SEMAPHORE_LDAP_BIND_PASSWORD = os.getenv("LDAP_SEARCH_BIND_PASSWORD", "")
-SEMAPHORE_LDAP_SERVER = os.getenv("LDAP_HOSTNAME", "")
-SEMAPHORE_LDAP_SEARCH_DN = os.getenv("LDAP_USER_BASE_DN", "")
-SEMAPHORE_LDAP_SEARCH_FILTER = os.getenv("LDAP_USER_SEARCH_FILTER", "")
-SEMAPHORE_LDAP_NEEDTLS = "False"
+SEMAPHORE_LDAP_SERVER        = os.getenv("LDAP_HOSTNAME",            "")
+SEMAPHORE_LDAP_SEARCH_DN     = os.getenv("LDAP_USER_BASE_DN",        "")
+SEMAPHORE_LDAP_SEARCH_FILTER = os.getenv("LDAP_USER_SEARCH_FILTER",  "")
+SEMAPHORE_LDAP_NEEDTLS       = "False"
 
-app_config = {
+# ------------------------------------------------------------
+# 6. Build the final env file for Semaphore
+# ------------------------------------------------------------
+app_env = {
+    # Admin
     "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
-    "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
-    "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
-    "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN,
+    "SEMAPHORE_ADMIN_NAME":     SEMAPHORE_ADMIN_NAME,
+    "SEMAPHORE_ADMIN_EMAIL":    SEMAPHORE_ADMIN_EMAIL,
+    "SEMAPHORE_ADMIN":          SEMAPHORE_ADMIN,
+
     # SMTP
     "SEMAPHORE_EMAIL_SENDER": MAIL_FROM_NAME,
-    "SEMAPHORE_EMAIL_HOST": SMTP_HOST,
-    "SEMAPHORE_EMAIL_PORT": str(SMTP_PORT),
-    "SEMAPHORE_EMAIL_USERNAME": SMTP_USERNAME,
-    "SEMAPHORE_EMAIL_PASSWORD": SMTP_PASSWORD,
-    # Gotify
-    "SEMAPHORE_GOTIFY_ALERT": SEMAPHORE_GOTIFY_ALERT,
-    "SEMAPHORE_GOTIFY_URL": SEMAPHORE_GOTIFY_URL,
-    "SEMAPHORE_GOTIFY_TOKEN": SEMAPHORE_GOTIFY_TOKEN,
-    # Telegram
+    "SEMAPHORE_EMAIL_HOST":   smtp["host"],
+    "SEMAPHORE_EMAIL_PORT":   str(smtp["port"]),
+    "SEMAPHORE_EMAIL_USERNAME": smtp["username"],
+    "SEMAPHORE_EMAIL_PASSWORD": smtp["password"],
+
+    # Notifications
+    "SEMAPHORE_GOTIFY_ALERT":   SEMAPHORE_GOTIFY_ALERT,
+    "SEMAPHORE_GOTIFY_URL":     SEMAPHORE_GOTIFY_URL,
+    "SEMAPHORE_GOTIFY_TOKEN":   SEMAPHORE_GOTIFY_TOKEN,
     "SEMAPHORE_TELEGRAM_ALERT": SEMAPHORE_TELEGRAM_ALERT,
-    "SEMAPHORE_TELEGRAM_CHAT": SEMAPHORE_TELEGRAM_CHAT,
+    "SEMAPHORE_TELEGRAM_CHAT":  SEMAPHORE_TELEGRAM_CHAT,
     "SEMAPHORE_TELEGRAM_TOKEN": SEMAPHORE_TELEGRAM_TOKEN,
+
     # LDAP
-    "SEMAPHORE_LDAP_ENABLE": SEMAPHORE_LDAP_ENABLE,
-    "SEMAPHORE_LDAP_BIND_DN": SEMAPHORE_LDAP_BIND_DN,
+    "SEMAPHORE_LDAP_ENABLE":        SEMAPHORE_LDAP_ENABLE,
+    "SEMAPHORE_LDAP_BIND_DN":       SEMAPHORE_LDAP_BIND_DN,
     "SEMAPHORE_LDAP_BIND_PASSWORD": SEMAPHORE_LDAP_BIND_PASSWORD,
-    "SEMAPHORE_LDAP_SERVER": SEMAPHORE_LDAP_SERVER,
-    "SEMAPHORE_LDAP_SEARCH_DN": SEMAPHORE_LDAP_SEARCH_DN,
+    "SEMAPHORE_LDAP_SERVER":        SEMAPHORE_LDAP_SERVER,
+    "SEMAPHORE_LDAP_SEARCH_DN":     SEMAPHORE_LDAP_SEARCH_DN,
     "SEMAPHORE_LDAP_SEARCH_FILTER": SEMAPHORE_LDAP_SEARCH_FILTER,
-    "SEMAPHORE_LDAP_NEEDTLS": SEMAPHORE_LDAP_NEEDTLS,
-    "SEMAPHORE_LDAP_MAPPING_DN": "dn",
-    "SEMAPHORE_LDAP_MAPPING_MAIL": "mail",
-    "SEMAPHORE_LDAP_MAPPING_UID": "uid",
-    "SEMAPHORE_LDAP_MAPPING_CN": "cn",
+    "SEMAPHORE_LDAP_NEEDTLS":       SEMAPHORE_LDAP_NEEDTLS,
+    "SEMAPHORE_LDAP_MAPPING_DN":    "dn",
+    "SEMAPHORE_LDAP_MAPPING_MAIL":  "mail",
+    "SEMAPHORE_LDAP_MAPPING_UID":   "uid",
+    "SEMAPHORE_LDAP_MAPPING_CN":    "cn",
 }
 
-agent.write_envfile("app.env", app_config)
+agent.write_envfile("app.env", app_env)
+
+# ------------------------------------------------------------
+# 7. Echo back the whole configuration so the UI can reload it
+# ------------------------------------------------------------
+json.dump({
+    "host":         host,
+    "lets_encrypt": lets_encrypt,
+    "http2https":   http2https,
+    "ldap_domain":  ldap_domain,
+    "domains_list": agent.list_user_domains(),   # used by combo-box
+    "semaphore_admin":      SEMAPHORE_ADMIN,
+    "semaphore_admin_name": SEMAPHORE_ADMIN_NAME,
+    "semaphore_admin_email": SEMAPHORE_ADMIN_EMAIL,
+}, sys.stdout)
+
 agent.dump_env()
