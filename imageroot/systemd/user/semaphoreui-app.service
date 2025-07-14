@@ -22,6 +22,9 @@ ExecStart=/usr/bin/podman run --conmon-pidfile %t/semaphoreui-app.pid \
     --cidfile %t/semaphoreui-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/semaphoreui.pod-id --replace -d --name  semaphoreui-app \
     --env-file=%S/state/app.env \
+    --volume semaphore-data:/var/lib/semaphore:Z \
+    --volume semaphore-config:/etc/semaphore:Z \
+    --volume semaphore-tmp:/tmp/semaphore:Z \
     ${SEMAPHORE_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/semaphoreui-app.ctr-id -t 10
 ExecReload=/usr/bin/podman kill -s HUP semaphoreui-app
