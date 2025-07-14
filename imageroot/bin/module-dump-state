@@ -17,7 +17,7 @@ fi
 
 podman exec mariadb-app mysqldump \
 	--databases semaphore \
-	--user=sempahore \
+	--user=root \
 	--password="$MARIADB_ROOT_PASSWORD" \
 	--default-character-set=utf8mb4 \
 	--skip-dump-date \
