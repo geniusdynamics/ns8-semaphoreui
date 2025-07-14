@@ -6,6 +6,7 @@
 #
 
 set -e -o pipefail
+source database.env
 exec 1>&2 # Redirect any output to the journal (stderr)
 
 # Prepare an initialization script that restores the dump file
@@ -28,14 +29,14 @@ trap 'rm -rfv initdb.d/' EXIT
 # at the end of semaphoreui_restore.sh the dump is loaded and
 # we exit the container
 podman run \
-  --rm \
-  --interactive \
-  --network=none \
-  --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
-  --volume mysql-data:/var/lib/mysql/:Z \
-  --env MARIADB_ROOT_PASSWORD=Nethesis@1234 \
-  --env MARIADB_DATABASE=semaphore \
-  --env MARIADB_USER=semaphore \
-  --env MARIADB_PASSWORD=Nethesis@1234 \
-  --replace --name=restore_db \
-  ${MARIADB_IMAGE}
+	--rm \
+	--interactive \
+	--network=none \
+	--volume=./initdb.d:/docker-entrypoint-initdb.d:z \
+	--volume mysql-data:/var/lib/mysql/:Z \
+	--env MARIADB_ROOT_PASSWORD="$MARIADB_ROOT_PASSWORD" \
+	--env MARIADB_DATABASE=semaphore \
+	--env MARIADB_USER=semaphore \
+	--env MARIADB_PASSWORD="$MARIADB_PASSWORD" \
+	--replace --name=restore_db \
+	${MARIADB_IMAGE}
