@@ -22,6 +22,7 @@ ExecStart=/usr/bin/podman run --conmon-pidfile %t/semaphoreui-app.pid \
     --cidfile %t/semaphoreui-app.ctr-id --cgroups=no-conmon \
     --pod-id-file %t/semaphoreui.pod-id --replace -d --name  semaphoreui-app \
     --env-file=%S/state/app.env \
+    --env-file=%S/state/app-db.env \
     --volume semaphore-data:/var/lib/semaphore:Z \
     --volume semaphore-config:/etc/semaphore:Z \
     --volume semaphore-tmp:/tmp/semaphore:Z \

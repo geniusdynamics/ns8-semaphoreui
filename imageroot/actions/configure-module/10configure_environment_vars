@@ -13,25 +13,7 @@ import os
 # Parse JSON input
 data = json.load(sys.stdin)
 
-# MariaDB config
-MARIADB_ROOT_PASSWORD = data.get("MARIADB_ROOT_PASSWORD", "Nethesis@1234")
-MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
-MARIADB_USER = data.get("MARIADB_USER", "semaphore")
-MARIADB_PASSWORD = data.get("MARIADB_PASSWORD", "Nethesis@1234")
-MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
-
-maria_db = {
-    "MARIADB_ROOT_PASSWORD": MARIADB_ROOT_PASSWORD,
-    "MARIADB_DATABASE": MARIADB_DATABASE,
-    "MARIADB_USER": MARIADB_USER,
-    "MARIADB_PASSWORD": MARIADB_PASSWORD,
-    "MARIADB_AUTO_UPGRADE": MARIADB_AUTO_UPGRADE
-}
-agent.write_envfile("database.env", maria_db)
-
 # Semaphore app config
-SECRET_KEY_BYTES = secrets.token_bytes(32)
-SECRET_KEY = base64.b64encode(SECRET_KEY_BYTES).decode('utf-8')
 
 SEMAPHORE_ADMIN_PASSWORD = data.get("SEMAPHORE_ADMIN_PASSWORD", "password")
 SEMAPHORE_ADMIN_NAME = data.get("SEMAPHORE_ADMIN_NAME", "admin")
@@ -42,12 +24,12 @@ SEMAPHORE_ADMIN = data.get("SEMAPHORE_ADMIN", "admin")
 rdb = agent.redis_connect(use_replica=True)
 smtp_settings = agent.get_smarthost_settings(rdb)
 
-MAIL_FROM_ADDRESS = smtp_settings['username']
+MAIL_FROM_ADDRESS = smtp_settings["username"]
 MAIL_FROM_NAME = f"SEMAPHORE <{MAIL_FROM_ADDRESS}>"
-SMTP_HOST = smtp_settings['host']
-SMTP_PORT = smtp_settings['port']
-SMTP_USERNAME = smtp_settings['username']
-SMTP_PASSWORD = smtp_settings['password']
+SMTP_HOST = smtp_settings["host"]
+SMTP_PORT = smtp_settings["port"]
+SMTP_USERNAME = smtp_settings["username"]
+SMTP_PASSWORD = smtp_settings["password"]
 
 # Optional Gotify + Telegram
 SEMAPHORE_GOTIFY_ALERT = data.get("SEMAPHORE_GOTIFY_ALERT", "False")
@@ -73,36 +55,24 @@ SEMAPHORE_LDAP_SEARCH_FILTER = os.getenv("LDAP_USER_SEARCH_FILTER", "")
 SEMAPHORE_LDAP_NEEDTLS = "False"
 
 app_config = {
-    "SEMAPHORE_DB_USER": MARIADB_USER,
-    "SEMAPHORE_DB_PASS": MARIADB_PASSWORD,
-    "SEMAPHORE_DB_HOST": "mariadb-app",
-    "SEMAPHORE_DB_PORT": "3306",
-    "SEMAPHORE_DB_DIALECT": "mysql",
-    "SEMAPHORE_DB": MARIADB_DATABASE,
-
     "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
     "SEMAPHORE_ADMIN_NAME": SEMAPHORE_ADMIN_NAME,
     "SEMAPHORE_ADMIN_EMAIL": SEMAPHORE_ADMIN_EMAIL,
     "SEMAPHORE_ADMIN": SEMAPHORE_ADMIN,
-    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": SECRET_KEY,
-
     # SMTP
     "SEMAPHORE_EMAIL_SENDER": MAIL_FROM_NAME,
     "SEMAPHORE_EMAIL_HOST": SMTP_HOST,
     "SEMAPHORE_EMAIL_PORT": str(SMTP_PORT),
     "SEMAPHORE_EMAIL_USERNAME": SMTP_USERNAME,
     "SEMAPHORE_EMAIL_PASSWORD": SMTP_PASSWORD,
-
     # Gotify
     "SEMAPHORE_GOTIFY_ALERT": SEMAPHORE_GOTIFY_ALERT,
     "SEMAPHORE_GOTIFY_URL": SEMAPHORE_GOTIFY_URL,
     "SEMAPHORE_GOTIFY_TOKEN": SEMAPHORE_GOTIFY_TOKEN,
-
     # Telegram
     "SEMAPHORE_TELEGRAM_ALERT": SEMAPHORE_TELEGRAM_ALERT,
     "SEMAPHORE_TELEGRAM_CHAT": SEMAPHORE_TELEGRAM_CHAT,
     "SEMAPHORE_TELEGRAM_TOKEN": SEMAPHORE_TELEGRAM_TOKEN,
-
     # LDAP
     "SEMAPHORE_LDAP_ENABLE": SEMAPHORE_LDAP_ENABLE,
     "SEMAPHORE_LDAP_BIND_DN": SEMAPHORE_LDAP_BIND_DN,
@@ -114,7 +84,7 @@ app_config = {
     "SEMAPHORE_LDAP_MAPPING_DN": "dn",
     "SEMAPHORE_LDAP_MAPPING_MAIL": "mail",
     "SEMAPHORE_LDAP_MAPPING_UID": "uid",
-    "SEMAPHORE_LDAP_MAPPING_CN": "cn"
+    "SEMAPHORE_LDAP_MAPPING_CN": "cn",
 }
 
 agent.write_envfile("app.env", app_config)
