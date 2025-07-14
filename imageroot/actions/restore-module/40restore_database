@@ -33,7 +33,7 @@ podman run \
   --network=none \
   --volume=./initdb.d:/docker-entrypoint-initdb.d:z \
   --volume mysql-data:/var/lib/mysql/:Z \
-  --env MARIADB_ROOT_PASSWORD=Nethesis,1234 \
+  --env MARIADB_ROOT_PASSWORD=Nethesis@1234 \
   --env MARIADB_DATABASE=semaphoreui \
   --env MARIADB_USER=semaphoreui \
   --env MARIADB_PASSWORD=semaphoreui \
