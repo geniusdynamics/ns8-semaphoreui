@@ -9,6 +9,7 @@ import agent
 import secrets
 import base64
 import os
+from agent.ldapproxy import Ldapproxy
 
 # Parse JSON input
 data = json.load(sys.stdin)
@@ -56,6 +57,7 @@ SEMAPHORE_TELEGRAM_TOKEN = data.get("SEMAPHORE_TELEGRAM_TOKEN", "")
 # ------------------------------------------------------------
 ldap_domain = data.get("ldap_domain", "")
 agent.set_env("LDAP_DOMAIN", ldap_domain)
+
 agent.bind_user_domains([ldap_domain] if ldap_domain else [])
 
 SEMAPHORE_LDAP_ENABLE        = "True" if ldap_domain else "False"
