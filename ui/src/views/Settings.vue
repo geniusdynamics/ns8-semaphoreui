@@ -63,7 +63,7 @@
             </cv-toggle>
             <cv-text-input
                 :label="$t('settings.SEMAPHORE_ADMIN')"
-                placeholder="s"
+                placeholder="adminuser"
                 v-model="SEMAPHORE_ADMIN"
                 class="mg-bottom"
                 :invalid-message="$t(error.SEMAPHORE_ADMIN)"
@@ -73,7 +73,7 @@
             </cv-text-input>
             <cv-text-input
                 :label="$t('settings.SEMAPHORE_ADMIN_NAME')"
-                placeholder="s"
+                placeholder="Admin Name"
                 v-model="SEMAPHORE_ADMIN_NAME"
                 class="mg-bottom"
                 :invalid-message="$t(error.SEMAPHORE_ADMIN_NAME)"
@@ -83,7 +83,7 @@
             </cv-text-input>
             <cv-text-input
                 :label="$t('settings.SEMAPHORE_ADMIN_EMAIL')"
-                placeholder="s"
+                placeholder="admin@email.org"
                 v-model="SEMAPHORE_ADMIN_EMAIL"
                 class="mg-bottom"
                 :invalid-message="$t(error.SEMAPHORE_ADMIN_EMAIL)"
@@ -94,7 +94,7 @@
             </cv-text-input>
             <cv-text-input
                 :label="$t('settings.SEMAPHORE_ADMIN_PASSWORD')"
-                placeholder="s"
+                placeholder="V3rY_5e(urE_P@$$w0RD"
                 v-model="SEMAPHORE_ADMIN_PASSWORD"
                 class="mg-bottom"
                 :invalid-message="$t(error.SEMAPHORE_ADMIN_PASSWORD)"
