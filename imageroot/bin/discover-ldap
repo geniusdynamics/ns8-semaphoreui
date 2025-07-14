@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+#
+# Discover and export LDAP settings for Semaphore
+#
+
+import os
+import sys
+import json
+import agent
+from agent.ldapproxy import Ldapproxy
+
+udomname = os.environ.get('LDAP_DOMAIN', '')
+
+try:
+    odom = Ldapproxy().get_domain(udomname)
+    'host' in odom  # Ensure odom is not None
+except:
+    # Use fallback configuration during restore or missing domain
+    odom = {
+        'host': '127.0.0.1',
+        'port': 389,
+        'schema': 'rfc2307',
+        'location': 'internal',
+        'base_dn': 'dc=example,dc=invalid',
+        'bind_dn': 'cn=example,dc=example,dc=invalid',
+        'bind_password': 'invalid',
+    }
+
+tmpfile = "discover.env." + str(os.getpid())
+
+with open(tmpfile, "w") as denv:
+    print('SEMAPHORE_LDAP_ENABLE=True', file=denv)
+    print('SEMAPHORE_LDAP_BIND_DN=' + odom['bind_dn'], file=denv)
+    print('SEMAPHORE_LDAP_BIND_PASSWORD=' + odom['bind_password'], file=denv)
+    print('SEMAPHORE_LDAP_SERVER=' + odom['host'], file=denv)
+    print('SEMAPHORE_LDAP_NEEDTLS=False', file=denv)
+    print('SEMAPHORE_LDAP_MAPPING_DN=dn', file=denv)
+    print('SEMAPHORE_LDAP_MAPPING_MAIL=mail', file=denv)
+    print('SEMAPHORE_LDAP_MAPPING_UID=uid', file=denv)
+    print('SEMAPHORE_LDAP_MAPPING_CN=cn', file=denv)
+
+    if odom['schema'] == 'rfc2307':
+        print('SEMAPHORE_LDAP_SEARCH_DN=ou=People,' + odom['base_dn'], file=denv)
+        print('SEMAPHORE_LDAP_SEARCH_FILTER=', file=denv)
+    elif odom['schema'] == 'ad':
+        print('SEMAPHORE_LDAP_SEARCH_DN=cn=Users,' + odom['base_dn'], file=denv)
+        print('SEMAPHORE_LDAP_SEARCH_FILTER=(&(objectClass=top)(objectClass=user)(objectClass=person)(objectClass=organizationalPerson))', file=denv)
+
+os.replace(tmpfile, "discovery.env")
