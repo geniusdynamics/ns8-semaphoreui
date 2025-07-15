@@ -24,7 +24,7 @@ try:
 except Exception:
     # Fallback during restore / missing domain
     odom = {
-        "host": "127.0.0.1",
+        "host": "10.0.2.2",
         "port": 20000,
         "schema": "rfc2307",
         "base_dn": "dc=semaphore,dc=invalid",
