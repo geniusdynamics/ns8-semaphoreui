@@ -143,7 +143,8 @@ json.dump({
     "lets_encrypt": lets_encrypt,
     "http2https":   http2https,
     "ldap_domain":  ldap_domain,
-    "domains_list": agent.list_user_domains(),
+    "domains_list": [{"name": d, "label": d, "value": d}
+                     for d in Ldapproxy().get_domains_list()],
     "semaphore_admin":      SEMAPHORE_ADMIN,
     "semaphore_admin_name": SEMAPHORE_ADMIN_NAME,
     "semaphore_admin_email": SEMAPHORE_ADMIN_EMAIL,
