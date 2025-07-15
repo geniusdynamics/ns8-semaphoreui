@@ -27,7 +27,7 @@ MARIADB_ROOT_PASSWORD = generate_random_password(16)
 MARIADB_DATABASE = data.get("MARIADB_DATABASE", "semaphore")
 MARIADB_USER = data.get("MARIADB_USER", "semaphore")
 MARIADB_PASSWORD = generate_random_password(16)
-MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
+# MARIADB_AUTO_UPGRADE = data.get("MARIADB_AUTO_UPGRADE", "1")
 
 maria_db = {
     "MARIADB_ROOT_PASSWORD": MARIADB_ROOT_PASSWORD,
