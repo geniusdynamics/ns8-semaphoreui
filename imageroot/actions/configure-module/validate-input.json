@@ -7,7 +7,12 @@
         {
             "host": "semaphoreui.domain.org",
             "http2https": true,
-            "lets_encrypt": true
+            "lets_encrypt": true,
+            "ldap_domain": "domain.local",
+            "semaphore_admin": "admin",
+            "semaphore_admin_name": "Administrator",
+            "semaphore_admin_email": "admin@domain.org",
+            "semaphore_admin_password": "password"
         }
     ],
     "type": "object",
@@ -32,6 +37,27 @@
             "type": "boolean",
             "title": "HTTP to HTTPS redirection",
             "description": "Redirect all the HTTP requests to HTTPS"
+        },
+        "ldap_domain": {
+            "type": "string",
+            "title": "LDAP domain",
+            "description": "LDAP domain for user authentication"
+        },
+        "semaphore_admin": {
+            "type": "string",
+            "title": "Semaphore admin username"
+        },
+        "semaphore_admin_name": {
+            "type": "string",
+            "title": "Semaphore admin display name"
+        },
+        "semaphore_admin_email": {
+            "type": "string",
+            "title": "Semaphore admin email"
+        },
+        "semaphore_admin_password": {
+            "type": "string",
+            "title": "Semaphore admin password"
         }
     }
 }
