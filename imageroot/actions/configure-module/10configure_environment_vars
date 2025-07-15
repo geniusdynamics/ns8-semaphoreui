@@ -93,12 +93,23 @@ else:
 # ------------------------------------------------
 # 6. Build final env file
 # ------------------------------------------------
+db_env = agent.read_envfile("app-db.env")
+
 app_env = {
     # Admin
     "SEMAPHORE_ADMIN_PASSWORD": SEMAPHORE_ADMIN_PASSWORD,
     "SEMAPHORE_ADMIN_NAME":     SEMAPHORE_ADMIN_NAME,
     "SEMAPHORE_ADMIN_EMAIL":    SEMAPHORE_ADMIN_EMAIL,
     "SEMAPHORE_ADMIN":          SEMAPHORE_ADMIN,
+
+    # Database (MariaDB)
+    "SEMAPHORE_DB_DIALECT": db_env["SEMAPHORE_DB_DIALECT"],
+    "SEMAPHORE_DB_HOST":    db_env["SEMAPHORE_DB_HOST"],
+    "SEMAPHORE_DB_PORT":    db_env["SEMAPHORE_DB_PORT"],
+    "SEMAPHORE_DB":         db_env["SEMAPHORE_DB"],
+    "SEMAPHORE_DB_USER":    db_env["SEMAPHORE_DB_USER"],
+    "SEMAPHORE_DB_PASS":    db_env["SEMAPHORE_DB_PASS"],
+    "SEMAPHORE_ACCESS_KEY_ENCRYPTION": db_env["SEMAPHORE_ACCESS_KEY_ENCRYPTION"],
 
     # SMTP
     "SEMAPHORE_EMAIL_SENDER": MAIL_FROM_NAME,
@@ -121,7 +132,7 @@ app_env = {
     "SEMAPHORE_LDAP_BIND_PASSWORD": os.getenv("LDAP_SEARCH_BIND_PASSWORD", ""),
     "SEMAPHORE_LDAP_SERVER":        os.getenv("SEMAPHORE_LDAP_SERVER", ""),
     "SEMAPHORE_LDAP_SEARCH_DN":     os.getenv("SEMAPHORE_LDAP_SEARCH_DN", ""),
-    "SEMAPHORE_LDAP_SEARCH_FILTER": os.getenv("LDAP_USER_SEARCH_FILTER", ""),
+    "SEMAPHORE_LDAP_SEARCH_FILTER": os.getenv("SEMAPHORE_LDAP_SEARCH_FILTER", ""),
     "SEMAPHORE_LDAP_NEEDTLS":       "False",
     "SEMAPHORE_LDAP_MAPPING_DN":    "dn",
     "SEMAPHORE_LDAP_MAPPING_MAIL":  "mail",
