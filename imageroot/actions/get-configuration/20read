@@ -9,6 +9,9 @@
 import os, sys, json, agent
 from agent.ldapproxy import Ldapproxy
 
+# Load environment saved during configuration
+env = agent.read_envfile("app.env")
+
 # LDAP domains for combo-box
 lp = Ldapproxy()
 domains = [{"name": k, "label": k, "value": k} for k in lp.get_domains_list()]
@@ -21,10 +24,10 @@ config = {
     "domains_list": domains,
 
     # Admin credentials – match UI field names exactly
-    "SEMAPHORE_ADMIN":          os.getenv("SEMAPHORE_ADMIN", ""),
-    "SEMAPHORE_ADMIN_NAME":     os.getenv("SEMAPHORE_ADMIN_NAME", ""),
-    "SEMAPHORE_ADMIN_EMAIL":    os.getenv("SEMAPHORE_ADMIN_EMAIL", ""),
-    "SEMAPHORE_ADMIN_PASSWORD": os.getenv("SEMAPHORE_ADMIN_PASSWORD", ""),
+    "SEMAPHORE_ADMIN":          env.get("SEMAPHORE_ADMIN", ""),
+    "SEMAPHORE_ADMIN_NAME":     env.get("SEMAPHORE_ADMIN_NAME", ""),
+    "SEMAPHORE_ADMIN_EMAIL":    env.get("SEMAPHORE_ADMIN_EMAIL", ""),
+    "SEMAPHORE_ADMIN_PASSWORD": env.get("SEMAPHORE_ADMIN_PASSWORD", ""),
 }
 
 json.dump(config, fp=sys.stdout)
