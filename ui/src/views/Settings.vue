@@ -60,27 +60,6 @@
               <template slot="text-right">{{ $t("settings.enabled") }}</template>
             </cv-toggle>
 
-            <!-- LDAP domain selector (NEW) -->
-            <NsComboBox
-              v-model.trim="ldap_domain"
-              :autoFilter="true"
-              :autoHighlight="true"
-              :title="$t('settings.ldap_domain')"
-              :label="$t('settings.choose_ldap_domain')"
-              :options="domains_list"
-              :acceptUserInput="false"
-              :showItemType="true"
-              :invalid-message="$t(error.ldap_domain)"
-              :disabled="loading.getConfiguration || loading.configureModule"
-              tooltipAlignment="start"
-              tooltipDirection="top"
-              ref="ldap_domain"
-            >
-              <template slot="tooltip">
-                {{ $t("settings.choose_the_ldap_domain_to_use") }}
-              </template>
-            </NsComboBox>
-
             <!-- Admin user -->
             <cv-text-input
               :label="$t('settings.SEMAPHORE_ADMIN')"
@@ -125,7 +104,27 @@
             <cv-accordion ref="accordion" class="maxwidth mg-bottom">
               <cv-accordion-item :open="toggleAccordion[0]">
                 <template slot="title">{{ $t("settings.advanced") }}</template>
-                <template slot="content"></template>
+                <template slot="content">
+                  <!-- LDAP domain selector moved here -->
+                  <NsComboBox
+                    v-model.trim="ldap_domain"
+                    :autoFilter="true"
+                    :autoHighlight="true"
+                    :title="$t('settings.ldap_domain')"
+                    :label="$t('settings.choose_ldap_domain')"
+                    :options="domains_list"
+                    :acceptUserInput="false"
+                    :showItemType="true"
+                    :invalid-message="$t(error.ldap_domain)"
+                    :disabled="loading.getConfiguration || loading.configureModule"
+                    tooltipAlignment="start"
+                    tooltipDirection="top"
+                  >
+                    <template slot="tooltip">
+                      {{ $t("settings.choose_the_ldap_domain_to_use") }}
+                    </template>
+                  </NsComboBox>
+                </template>
               </cv-accordion-item>
             </cv-accordion>
 
@@ -187,8 +186,8 @@ export default {
       host: "",
       isLetsEncryptEnabled: false,
       isHttpToHttpsEnabled: true,
-      ldap_domain: "",           // <── NEW
-      domains_list: [],          // <── NEW
+      ldap_domain: "",
+      domains_list: [],
       SEMAPHORE_ADMIN_PASSWORD: "",
       SEMAPHORE_ADMIN_NAME: "",
       SEMAPHORE_ADMIN_EMAIL: "",
@@ -203,7 +202,7 @@ export default {
         host: "",
         lets_encrypt: "",
         http2https: "",
-        ldap_domain: "",         // <── NEW
+        ldap_domain: "",
         SEMAPHORE_ADMIN_PASSWORD: "",
         SEMAPHORE_ADMIN_NAME: "",
         SEMAPHORE_ADMIN_EMAIL: "",
@@ -253,9 +252,10 @@ export default {
           },
         })
       );
-      if (res[0]) {
-        console.error(`error creating task ${taskAction}`, res[0]);
-        this.error.getConfiguration = this.getErrorMessage(res[0]);
+      const err = res[0];
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.getConfiguration = this.getErrorMessage(err);
         this.loading.getConfiguration = false;
       }
     },
@@ -274,7 +274,6 @@ export default {
       this.SEMAPHORE_ADMIN = config.semaphore_admin || "";
       this.SEMAPHORE_ADMIN_NAME = config.semaphore_admin_name || "";
       this.SEMAPHORE_ADMIN_EMAIL = config.semaphore_admin_email || "";
-
       this.loading.getConfiguration = false;
       this.focusElement("host");
     },
@@ -282,11 +281,25 @@ export default {
     validateConfigureModule() {
       this.clearErrors(this);
       let isValidationOk = true;
+
       if (!this.host) {
         this.error.host = "common.required";
         if (isValidationOk) this.focusElement("host");
         isValidationOk = false;
       }
+
+      if (!this.SEMAPHORE_ADMIN) {
+        this.error.SEMAPHORE_ADMIN = "common.required";
+        if (isValidationOk) this.focusElement("SEMAPHORE_ADMIN");
+        isValidationOk = false;
+      }
+
+      if (!this.SEMAPHORE_ADMIN_PASSWORD) {
+        this.error.SEMAPHORE_ADMIN_PASSWORD = "common.required";
+        if (isValidationOk) this.focusElement("SEMAPHORE_ADMIN_PASSWORD");
+        isValidationOk = false;
+      }
+
       return isValidationOk;
     },
     configureModuleValidationFailed(validationErrors) {
@@ -301,7 +314,6 @@ export default {
       }
     },
     async configureModule() {
-      this.clearErrors(this);
       if (!this.validateConfigureModule()) return;
 
       this.loading.configureModule = true;
@@ -329,10 +341,10 @@ export default {
             lets_encrypt: this.isLetsEncryptEnabled,
             http2https: this.isHttpToHttpsEnabled,
             ldap_domain: this.ldap_domain,
-            semaphore_admin: this.SEMAPHORE_ADMIN,
-            semaphore_admin_name: this.SEMAPHORE_ADMIN_NAME,
-            semaphore_admin_email: this.SEMAPHORE_ADMIN_EMAIL,
-            semaphore_admin_password: this.SEMAPHORE_ADMIN_PASSWORD,
+            SEMAPHORE_ADMIN: this.SEMAPHORE_ADMIN,
+            SEMAPHORE_ADMIN_NAME: this.SEMAPHORE_ADMIN_NAME,
+            SEMAPHORE_ADMIN_EMAIL: this.SEMAPHORE_ADMIN_EMAIL,
+            SEMAPHORE_ADMIN_PASSWORD: this.SEMAPHORE_ADMIN_PASSWORD,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {
@@ -343,9 +355,10 @@ export default {
           },
         })
       );
-      if (res[0]) {
-        console.error(`error creating task ${taskAction}`, res[0]);
-        this.error.configureModule = this.getErrorMessage(res[0]);
+      const err = res[0];
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.configureModule = this.getErrorMessage(err);
         this.loading.configureModule = false;
       }
     },
@@ -356,7 +369,7 @@ export default {
     },
     configureModuleCompleted() {
       this.loading.configureModule = false;
-      this.getConfiguration(); // reload
+      this.getConfiguration();
     },
   },
 };
