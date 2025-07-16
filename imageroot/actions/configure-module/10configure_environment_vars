@@ -73,9 +73,14 @@ if ldap_domain:
     base_dn = odom["base_dn"]
 
     scheme = "ldaps" if str(odom.get("port", "389")) == "636" else "ldap"
-    server_url = f"{scheme}://{odom['host']}:{odom['port']}"
+    server_url = f"{odom['host']}:{odom['port']}"
+    try:
+        # Attempt connection with stripped host:port
+        agent.set_env("SEMAPHORE_LDAP_SERVER", server_url)
+    except:
+        # fallback
+        agent.set_env("SEMAPHORE_LDAP_SERVER", f"{scheme}://{server_url}")
 
-    agent.set_env("SEMAPHORE_LDAP_SERVER", server_url)
     agent.set_env("SEMAPHORE_LDAP_BIND_DN", odom["bind_dn"])
     agent.set_env("SEMAPHORE_LDAP_BIND_PASSWORD", odom["bind_password"])
 
