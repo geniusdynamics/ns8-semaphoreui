@@ -72,8 +72,14 @@ if ldap_domain:
     odom = Ldapproxy().get_domain(ldap_domain)
     base_dn = odom["base_dn"]
 
+    # Patch host if it's 127.0.0.1
+    host = odom.get("host", "")
+    if host == "127.0.0.1" or not host:
+        host = "10.0.2.2"
+    odom["host"] = host
+
     scheme = "ldaps" if str(odom.get("port", "389")) == "636" else "ldap"
-    server_url = f"{odom['host']}:{odom['port']}"
+    server_url = f"{host}:{odom['port']}"
     try:
         # Attempt connection with stripped host:port
         agent.set_env("SEMAPHORE_LDAP_SERVER", server_url)
