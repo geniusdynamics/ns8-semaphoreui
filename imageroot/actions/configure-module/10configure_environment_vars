@@ -83,10 +83,12 @@ if ldap_domain:
         agent.set_env("SEMAPHORE_LDAP_SEARCH_DN", f"ou=People,{base_dn}")
         agent.set_env("SEMAPHORE_LDAP_SEARCH_FILTER",
                       "(&(objectClass=posixAccount)(uid=%s))")
+        agent.set_env("LDAP_USERNAME_ATTRIBUTE", "uid")
     elif odom["schema"] == "ad":
         agent.set_env("SEMAPHORE_LDAP_SEARCH_DN", f"cn=Users,{base_dn}")
         agent.set_env("SEMAPHORE_LDAP_SEARCH_FILTER",
                       "(&(objectClass=user)(sAMAccountName=%s))")
+        agent.set_env("LDAP_USERNAME_ATTRIBUTE", "samaccountname")
 else:
     agent.bind_user_domains([])
 
