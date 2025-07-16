@@ -38,11 +38,23 @@ agent.set_env("LDAP_PORT", str(odom["port"]))
 agent.set_env("LDAP_SEARCH_BIND_DN", odom["bind_dn"])
 agent.set_env("LDAP_SEARCH_BIND_PASSWORD", odom["bind_password"])
 
-# Compose full URL for Semaphore (with protocol)
-scheme = "ldaps" if str(odom["port"]) == "636" else "ldap"
-agent.set_env("SEMAPHORE_LDAP_SERVER", f"{scheme}://{odom['host']}:{odom['port']}")
+# ------------------------------------------------
+# Set SEMAPHORE_LDAP_SERVER (raw host:port format)
+# ------------------------------------------------
+ldap_host = odom["host"]
+ldap_port = odom["port"]
 
-# Schema-specific DN & search settings
+# Use host:port unless already URI-style (ldap://...)
+if "://" in ldap_host:
+    ldap_server = ldap_host
+else:
+    ldap_server = f"{ldap_host}:{ldap_port}"
+
+agent.set_env("SEMAPHORE_LDAP_SERVER", ldap_server)
+
+# ------------------------------------------------
+# Schema-specific LDAP options
+# ------------------------------------------------
 if odom["schema"] == "rfc2307":
     agent.set_env("LDAP_USER_BASE_DN",  f"ou=People,{base_dn}")
     agent.set_env("LDAP_GROUP_BASE_DN", f"ou=Groups,{base_dn}")
@@ -58,4 +70,5 @@ elif odom["schema"] == "ad":
     agent.set_env("LDAP_GROUP_SEARCH_FILTER",
                   "(&(objectClass=top)(objectClass=group))")
 
+# Dump env for review
 agent.dump_env()
