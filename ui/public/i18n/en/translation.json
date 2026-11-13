@@ -42,7 +42,10 @@
     "SEMAPHORE_ADMIN_PASSWORD": "Semaphore admin password",
     "SEMAPHORE_ADMIN_NAME": "Semaphore admin name",
     "SEMAPHORE_ADMIN_EMAIL": "Semaphore admin email",
-    "SEMAPHORE_ADMIN": "Semaphore admin"
+    "SEMAPHORE_ADMIN": "Semaphore admin",
+    "ldap_domain": "LDAP domain",
+    "choose_ldap_domain": "Choose an LDAP domain",
+    "choose_the_ldap_domain_to_use": "Select the LDAP domain that Semaphore will use for user authentication."
   },
   "about": {
     "title": "About"
