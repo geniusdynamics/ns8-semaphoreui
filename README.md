@@ -1,154 +1,100 @@
 # ns8-semaphoreui
 
-This is a module for [NethServer 8](https://github.com/NethServer/ns8-core) that installs [Semaphore](https://github.com/ansible-semaphore/semaphore), a modern open-source Ansible UI.
+Semaphore is a responsive web UI for running Ansible playbooks, Terraform/OpenTofu and Pulumi code.
 
----
+Module id: `semaphoreui`. Images are pinned in `build-images.sh` and updated through reviewed changes.
 
-## ✅ Install
-
-Instantiate the module with:
+## Install
 
 ```bash
 add-module ghcr.io/geniusdynamics/semaphoreui:latest 1
 ```
 
-Example output:
+The command returns the instance id, for example `semaphoreui1`. Use the id NS8 returns.
 
-```json
-{
-  "module_id": "semaphoreui1",
-  "image_name": "semaphoreui",
-  "image_url": "ghcr.io/geniusdynamics/semaphoreui:latest"
-}
-```
-
----
-
-## ⚙️ Configure
-
-Assuming your instance is named `semaphoreui1`, configure it by setting the domain and HTTPS options:
+## Configure
 
 ```bash
-api-cli run configure-module --agent module/semaphoreui1 --data - <<EOF
+api-cli run configure-module --agent module/semaphoreui1 --data - <<'EOF'
 {
-  "host": "semaphoreui.domain.com",
+  "host": "semaphoreui.example.org",
   "http2https": true,
   "lets_encrypt": false
 }
 EOF
 ```
 
-This command:
+| Parameter | Required | Type | Description |
+|---|---|---|---|
+| `host` | yes | string | Host name for the application, like 'semaphoreui.domain.org' |
+| `lets_encrypt` | yes | boolean | Request a valid Let's Encrypt certificate. |
+| `http2https` | yes | boolean | Redirect all the HTTP requests to HTTPS |
 
-* Starts the Semaphore UI
-* Creates a virtual host via Traefik
+## Configuration output
 
----
+`get-configuration` returns: `host`, `lets_encrypt`, `http2https`.
 
-## 📤 Email Configuration via SmartHost
+## Images
 
-Email/SMTP settings are automatically discovered from the centralized SmartHost Redis configuration using the `discover-smarthost` hook.
+| Image | Version |
+|---|---|
+| `docker.io/mariadb` | `10.11.19` |
+| `docker.io/semaphoreui/semaphore` | `v2.15.0` |
 
-### Automatically injected values:
+## Network and access
 
-* `SEMAPHORE_EMAIL_SENDER`
-* `SEMAPHORE_EMAIL_HOST`
-* `SEMAPHORE_EMAIL_PORT`
-* `SEMAPHORE_EMAIL_USERNAME`
-* `SEMAPHORE_EMAIL_PASSWORD`
+- Reserves 1 TCP port(s) on the node. The web application is published through Traefik on the configured host name.
+- Runs rootless.
+- Declares these NS8 authorizations: `traefik@node:routeadm`.
 
-You do not need to pass these manually — they're refreshed at container start and on SmartHost changes.
+## Backup
 
----
+The following paths are included in the NS8 backup (`imageroot/etc/state-include.conf`):
 
-## 🔔 Alert Integrations (Gotify & Telegram)
+- `state/semaphoreui.sql`
+- `state/database.env`
+- `state/app.env`
+- `volumes/semaphoreui-app`
+- `volumes/semaphore-data`
+- `volumes/semaphore-config`
+- `volumes/semaphore-tmp`
+- `volumes/mysql-data`
 
-Optional alert integrations can be added by including the following variables in your JSON configuration:
+## Services
 
-### Gotify Alerts
+- `mariadb-app.service`
+- `semaphoreui-app.service`
+- `semaphoreui.service`
 
-* `SEMAPHORE_GOTIFY_ALERT`: "True" or "False"
-* `SEMAPHORE_GOTIFY_URL`: Your Gotify server URL
-* `SEMAPHORE_GOTIFY_TOKEN`: Application token
-
-### Telegram Alerts
-
-* `SEMAPHORE_TELEGRAM_ALERT`: "True" or "False"
-* `SEMAPHORE_TELEGRAM_CHAT`: Telegram Chat ID
-* `SEMAPHORE_TELEGRAM_TOKEN`: Bot token
-
-All alert settings are written into `app.env` and used on container startup.
-
----
-
-## 🔍 Get the configuration
+## Get the configuration
 
 ```bash
 api-cli run get-configuration --agent module/semaphoreui1
 ```
 
----
-
-## ❌ Uninstall
+## Update and uninstall
 
 ```bash
+api-cli run update-module --data '{"module_url":"ghcr.io/geniusdynamics/semaphoreui:latest","instances":["semaphoreui1"],"force":true}'
 remove-module --no-preserve semaphoreui1
 ```
 
----
+## Testing
 
-## 📡 SmartHost setting discovery
+Continuous integration:
 
-At container startup, `bin/discover-smarthost` populates `state/smarthost.env` by querying Redis. When SmartHost settings change, the event handler `events/smarthost-changed/10reload_services` restarts the container automatically.
+- `Publish images` builds the module image on every push.
+- `Test module` installs the image on a QEMU NS8 node and runs the Robot Framework suite in `tests/`. It runs after `Publish images` succeeds on `dev` and on `main`.
+- `Build API JSON Schema docs` and the security scan run alongside.
 
----
+The suite installs the module, configures a host name, checks that the web application answers through Traefik, takes UI screenshots and removes the module.
 
-## 🔎 Debugging Tips
+Run it locally with the NS8 standard infrastructure described in the [ns8-github-actions README](https://github.com/NethServer/ns8-github-actions/blob/v1/README.md#running-tests-locally).
 
-### Check environment variables:
+## Upstream
 
-```bash
-runagent -m semaphoreui1 env
-```
+Application documentation: https://docs.semaphoreui.com/
 
-### Launch interactive shell as agent:
+## License
 
-```bash
-runagent -m semaphoreui1
-```
-
-### Inspect running containers:
-
-```bash
-podman ps
-```
-
-### Check inside the container:
-
-```bash
-podman exec semaphoreui-app env
-podman exec -ti semaphoreui-app sh
-```
-
----
-
-## 🔮 Testing
-
-Test the module using the following script:
-
-```bash
-./test-module.sh <NODE_ADDR> ghcr.io/geniusdynamics/semaphoreui:latest
-```
-
-Test logic uses [Robot Framework](https://robotframework.org).
-
----
-
-## 🌎 UI Translation
-
-This module supports [Weblate](https://hosted.weblate.org/projects/ns8/) for localization.
-
-To contribute:
-
-1. Add [GitHub Weblate app](https://docs.weblate.org/en/latest/admin/continuous.html#github-setup) to your repo.
-2. Add the repository to [hosted.weblate.org](https://hosted.weblate.org) or ask a NethServer developer to include it.
+GPL-3.0-or-later. See [LICENSE](LICENSE).
