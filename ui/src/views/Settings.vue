@@ -9,6 +9,7 @@
         <h2>{{ $t("settings.title") }}</h2>
       </cv-column>
     </cv-row>
+
     <cv-row v-if="error.getConfiguration">
       <cv-column>
         <NsInlineNotification
@@ -19,10 +20,12 @@
         />
       </cv-column>
     </cv-row>
+
     <cv-row>
       <cv-column>
         <cv-tile light>
           <cv-form @submit.prevent="configureModule">
+            <!-- FQDN -->
             <cv-text-input
               :label="$t('settings.semaphoreui_fqdn')"
               placeholder="semaphoreui.example.org"
@@ -31,8 +34,9 @@
               :invalid-message="$t(error.host)"
               :disabled="loading.getConfiguration || loading.configureModule"
               ref="host"
-            >
-            </cv-text-input>
+            />
+
+            <!-- Let’s Encrypt -->
             <cv-toggle
               value="letsEncrypt"
               :label="$t('settings.lets_encrypt')"
@@ -40,13 +44,11 @@
               :disabled="loading.getConfiguration || loading.configureModule"
               class="mg-bottom"
             >
-              <template slot="text-left">{{
-                $t("settings.disabled")
-              }}</template>
-              <template slot="text-right">{{
-                $t("settings.enabled")
-              }}</template>
+              <template slot="text-left">{{ $t("settings.disabled") }}</template>
+              <template slot="text-right">{{ $t("settings.enabled") }}</template>
             </cv-toggle>
+
+            <!-- HTTP → HTTPS -->
             <cv-toggle
               value="httpToHttps"
               :label="$t('settings.http_to_https')"
@@ -54,63 +56,79 @@
               :disabled="loading.getConfiguration || loading.configureModule"
               class="mg-bottom"
             >
-              <template slot="text-left">{{
-                $t("settings.disabled")
-              }}</template>
-              <template slot="text-right">{{
-                $t("settings.enabled")
-              }}</template>
+              <template slot="text-left">{{ $t("settings.disabled") }}</template>
+              <template slot="text-right">{{ $t("settings.enabled") }}</template>
             </cv-toggle>
+
+            <!-- Admin user -->
             <cv-text-input
-                :label="$t('settings.SEMAPHORE_ADMIN')"
-                placeholder="adminuser"
-                v-model="SEMAPHORE_ADMIN"
-                class="mg-bottom"
-                :invalid-message="$t(error.SEMAPHORE_ADMIN)"
-                :disabled="loading.getConfiguration || loading.configureModule"
-                ref="SEMAPHORE_ADMIN"
-            >
-            </cv-text-input>
+              :label="$t('settings.SEMAPHORE_ADMIN')"
+              placeholder="adminuser"
+              v-model="SEMAPHORE_ADMIN"
+              class="mg-bottom"
+              :invalid-message="$t(error.SEMAPHORE_ADMIN)"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              ref="SEMAPHORE_ADMIN"
+            />
             <cv-text-input
-                :label="$t('settings.SEMAPHORE_ADMIN_NAME')"
-                placeholder="Admin Name"
-                v-model="SEMAPHORE_ADMIN_NAME"
-                class="mg-bottom"
-                :invalid-message="$t(error.SEMAPHORE_ADMIN_NAME)"
-                :disabled="loading.getConfiguration || loading.configureModule"
-                ref="SEMAPHORE_ADMIN_NAME"
-            >
-            </cv-text-input>
+              :label="$t('settings.SEMAPHORE_ADMIN_NAME')"
+              placeholder="Admin Name"
+              v-model="SEMAPHORE_ADMIN_NAME"
+              class="mg-bottom"
+              :invalid-message="$t(error.SEMAPHORE_ADMIN_NAME)"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              ref="SEMAPHORE_ADMIN_NAME"
+            />
             <cv-text-input
-                :label="$t('settings.SEMAPHORE_ADMIN_EMAIL')"
-                placeholder="admin@email.org"
-                v-model="SEMAPHORE_ADMIN_EMAIL"
-                class="mg-bottom"
-                :invalid-message="$t(error.SEMAPHORE_ADMIN_EMAIL)"
-                :disabled="loading.getConfiguration || loading.configureModule"
-                ref="SEMAPHORE_ADMIN_EMAIL"
-                type="email"
-            >
-            </cv-text-input>
+              :label="$t('settings.SEMAPHORE_ADMIN_EMAIL')"
+              placeholder="admin@email.org"
+              v-model="SEMAPHORE_ADMIN_EMAIL"
+              class="mg-bottom"
+              :invalid-message="$t(error.SEMAPHORE_ADMIN_EMAIL)"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              ref="SEMAPHORE_ADMIN_EMAIL"
+              type="email"
+            />
             <cv-text-input
-                :label="$t('settings.SEMAPHORE_ADMIN_PASSWORD')"
-                placeholder="V3rY_5e(urE_P@$$w0RD"
-                v-model="SEMAPHORE_ADMIN_PASSWORD"
-                class="mg-bottom"
-                :invalid-message="$t(error.SEMAPHORE_ADMIN_PASSWORD)"
-                :disabled="loading.getConfiguration || loading.configureModule"
-                ref="SEMAPHORE_ADMIN_PASSWORD"
-                type="password"
-            >
-            </cv-text-input>
-              <!-- advanced options -->
+              :label="$t('settings.SEMAPHORE_ADMIN_PASSWORD')"
+              placeholder="V3rY_5e(urE_P@$$w0RD"
+              v-model="SEMAPHORE_ADMIN_PASSWORD"
+              class="mg-bottom"
+              :invalid-message="$t(error.SEMAPHORE_ADMIN_PASSWORD)"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              ref="SEMAPHORE_ADMIN_PASSWORD"
+              type="password"
+            />
+
+            <!-- Advanced accordion -->
             <cv-accordion ref="accordion" class="maxwidth mg-bottom">
               <cv-accordion-item :open="toggleAccordion[0]">
                 <template slot="title">{{ $t("settings.advanced") }}</template>
                 <template slot="content">
+                  <!-- LDAP domain selector moved here -->
+                  <NsComboBox
+                    v-model.trim="ldap_domain"
+                    :autoFilter="true"
+                    :autoHighlight="true"
+                    :title="$t('settings.ldap_domain')"
+                    :label="$t('settings.choose_ldap_domain')"
+                    :options="domains_list"
+                    :acceptUserInput="false"
+                    :showItemType="true"
+                    :invalid-message="$t(error.ldap_domain)"
+                    :disabled="loading.getConfiguration || loading.configureModule"
+                    tooltipAlignment="start"
+                    tooltipDirection="top"
+                  >
+                    <template slot="tooltip">
+                      {{ $t("settings.choose_the_ldap_domain_to_use") }}
+                    </template>
+                  </NsComboBox>
                 </template>
               </cv-accordion-item>
             </cv-accordion>
+
+            <!-- Global error bar -->
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
@@ -121,13 +139,16 @@
                 />
               </cv-column>
             </cv-row>
+
+            <!-- Save button -->
             <NsButton
               kind="primary"
               :icon="Save20"
               :loading="loading.configureModule"
               :disabled="loading.getConfiguration || loading.configureModule"
-              >{{ $t("settings.save") }}</NsButton
             >
+              {{ $t("settings.save") }}
+            </NsButton>
           </cv-form>
         </cv-tile>
       </cv-column>
@@ -160,13 +181,13 @@ export default {
   },
   data() {
     return {
-      q: {
-        page: "settings",
-      },
+      q: { page: "settings" },
       urlCheckInterval: null,
       host: "",
       isLetsEncryptEnabled: false,
       isHttpToHttpsEnabled: true,
+      ldap_domain: "",
+      domains_list: [],
       SEMAPHORE_ADMIN_PASSWORD: "",
       SEMAPHORE_ADMIN_NAME: "",
       SEMAPHORE_ADMIN_EMAIL: "",
@@ -181,6 +202,7 @@ export default {
         host: "",
         lets_encrypt: "",
         http2https: "",
+        ldap_domain: "",
         SEMAPHORE_ADMIN_PASSWORD: "",
         SEMAPHORE_ADMIN_NAME: "",
         SEMAPHORE_ADMIN_EMAIL: "",
@@ -211,13 +233,10 @@ export default {
       const taskAction = "get-configuration";
       const eventId = this.getUuid();
 
-      // register to task error
       this.core.$root.$once(
         `${taskAction}-aborted-${eventId}`,
         this.getConfigurationAborted
       );
-
-      // register to task completion
       this.core.$root.$once(
         `${taskAction}-completed-${eventId}`,
         this.getConfigurationCompleted
@@ -234,12 +253,10 @@ export default {
         })
       );
       const err = res[0];
-
       if (err) {
         console.error(`error creating task ${taskAction}`, err);
         this.error.getConfiguration = this.getErrorMessage(err);
         this.loading.getConfiguration = false;
-        return;
       }
     },
     getConfigurationAborted(taskResult, taskContext) {
@@ -252,68 +269,70 @@ export default {
       this.host = config.host;
       this.isLetsEncryptEnabled = config.lets_encrypt;
       this.isHttpToHttpsEnabled = config.http2https;
-
+      this.domains_list = config.domains_list || [];
+      this.ldap_domain = config.ldap_domain || "";
+      this.SEMAPHORE_ADMIN = config.semaphore_admin || "";
+      this.SEMAPHORE_ADMIN_NAME = config.semaphore_admin_name || "";
+      this.SEMAPHORE_ADMIN_EMAIL = config.semaphore_admin_email || "";
       this.loading.getConfiguration = false;
       this.focusElement("host");
     },
+
     validateConfigureModule() {
       this.clearErrors(this);
-
       let isValidationOk = true;
+
       if (!this.host) {
         this.error.host = "common.required";
-
-        if (isValidationOk) {
-          this.focusElement("host");
-        }
+        if (isValidationOk) this.focusElement("host");
         isValidationOk = false;
       }
+
+      if (!this.SEMAPHORE_ADMIN) {
+        this.error.SEMAPHORE_ADMIN = "common.required";
+        if (isValidationOk) this.focusElement("SEMAPHORE_ADMIN");
+        isValidationOk = false;
+      }
+
+      if (!this.SEMAPHORE_ADMIN_PASSWORD) {
+        this.error.SEMAPHORE_ADMIN_PASSWORD = "common.required";
+        if (isValidationOk) this.focusElement("SEMAPHORE_ADMIN_PASSWORD");
+        isValidationOk = false;
+      }
+
       return isValidationOk;
     },
     configureModuleValidationFailed(validationErrors) {
       this.loading.configureModule = false;
       let focusAlreadySet = false;
-
-      for (const validationError of validationErrors) {
-        const param = validationError.parameter;
-        // set i18n error message
-        this.error[param] = this.$t("settings." + validationError.error);
-
+      for (const ve of validationErrors) {
+        this.error[ve.parameter] = this.$t("settings." + ve.error);
         if (!focusAlreadySet) {
-          this.focusElement(param);
+          this.focusElement(ve.parameter);
           focusAlreadySet = true;
         }
       }
     },
     async configureModule() {
-      this.error.test_imap = false;
-      this.error.test_smtp = false;
-      const isValidationOk = this.validateConfigureModule();
-      if (!isValidationOk) {
-        return;
-      }
+      if (!this.validateConfigureModule()) return;
 
       this.loading.configureModule = true;
       const taskAction = "configure-module";
       const eventId = this.getUuid();
 
-      // register to task error
       this.core.$root.$once(
         `${taskAction}-aborted-${eventId}`,
         this.configureModuleAborted
       );
-
-      // register to task validation
       this.core.$root.$once(
         `${taskAction}-validation-failed-${eventId}`,
         this.configureModuleValidationFailed
       );
-
-      // register to task completion
       this.core.$root.$once(
         `${taskAction}-completed-${eventId}`,
         this.configureModuleCompleted
       );
+
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
@@ -321,6 +340,7 @@ export default {
             host: this.host,
             lets_encrypt: this.isLetsEncryptEnabled,
             http2https: this.isHttpToHttpsEnabled,
+            ldap_domain: this.ldap_domain,
             SEMAPHORE_ADMIN: this.SEMAPHORE_ADMIN,
             SEMAPHORE_ADMIN_NAME: this.SEMAPHORE_ADMIN_NAME,
             SEMAPHORE_ADMIN_EMAIL: this.SEMAPHORE_ADMIN_EMAIL,
@@ -336,12 +356,10 @@ export default {
         })
       );
       const err = res[0];
-
       if (err) {
         console.error(`error creating task ${taskAction}`, err);
         this.error.configureModule = this.getErrorMessage(err);
         this.loading.configureModule = false;
-        return;
       }
     },
     configureModuleAborted(taskResult, taskContext) {
@@ -351,8 +369,6 @@ export default {
     },
     configureModuleCompleted() {
       this.loading.configureModule = false;
-
-      // reload configuration
       this.getConfiguration();
     },
   },
@@ -364,7 +380,6 @@ export default {
 .mg-bottom {
   margin-bottom: $spacing-06;
 }
-
 .maxwidth {
   max-width: 38rem;
 }

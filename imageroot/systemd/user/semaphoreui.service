@@ -23,6 +23,8 @@ ExecStartPre=/usr/bin/podman pod create --infra-conmon-pidfile %t/semaphoreui.pi
     --pod-id-file %t/semaphoreui.pod-id \
     --name semaphoreui \
     --publish 127.0.0.1:${TCP_PORT}:3000 \
+    --network=slirp4netns:allow_host_loopback=true \
+    --add-host=accountprovider:10.0.2.2 \
     --replace
 ExecStart=/usr/bin/podman pod start --pod-id-file %t/semaphoreui.pod-id
 ExecStop=/usr/bin/podman pod stop --ignore --pod-id-file %t/semaphoreui.pod-id -t 10

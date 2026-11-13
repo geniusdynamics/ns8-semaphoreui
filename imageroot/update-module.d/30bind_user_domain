@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2024 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import agent
+import os
+import sys
+import json
+
+ldap_domain = os.getenv("LDAP_DOMAIN", "")
+if ldap_domain:
+    agent.bind_user_domains([ldap_domain])
+else:
+    agent.bind_user_domains([])
