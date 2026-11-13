@@ -16,7 +16,8 @@ repobase="${REPOBASE:-ghcr.io/geniusdynamics}"
 reponame="semaphoreui"
 # renovate: datasource=npm packageName=corepack
 corepack_version=0.36.0
-APP_VERSION="v2.15.0"
+# renovate: datasource=docker packageName=docker.io/semaphoreui/semaphore
+APP_VERSION=v2.15.0
 
 # Create a new empty container image
 container=$(buildah from scratch)
